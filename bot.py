@@ -215,10 +215,9 @@ WELCOME_CHANNEL_ID = 1355912711807963188
 
 @bot.event
 async def on_member_join(member):
-    
-# Envoi du message de bienvenue
-channel = bot.get_channel(WELCOME_CHANNEL_ID)
-if channel:
+    # Envoi du message de bienvenue
+    channel = bot.get_channel(WELCOME_CHANNEL_ID)
+    if channel:
     embed = discord.Embed(
         title="<a:fete:1172810362261880873> **Bienvenue sur le serveur Aquamoon !** <a:fete:1172810362261880873>",
         description=(
