@@ -218,30 +218,31 @@ async def on_member_join(member):
     # Envoi du message de bienvenue
     channel = bot.get_channel(WELCOME_CHANNEL_ID)
     if channel:
-    embed = discord.Embed(
-        title="<a:fete:1172810362261880873> **Bienvenue sur le serveur Aquamoon !** <a:fete:1172810362261880873>",
-        description=(
-            "<a:paintpalette:1172810412341587970> **Aquamoon** : L'univers créatif où la magie de l'imaginaire prend vie ! 🌙✨\n\n"
-            "🎨✨ **Aquamoon** ✨🎨\n\n"
-            "#Communautaire #Créatif #Divertissement\n\n"
-            "🚀 **Boost & Avantages** → #Nitro\n"
-            "🎬 **Animés & Streaming** → #Crunchyroll\n"
-            "🖌️ **Création & Design** → #Éditeur #Graphiste\n"
-            "🤝 **Échange & Partage** → #Communautaire\n\n"
-            "🔥 **ÉVÉNEMENT À NE PAS MANQUER !** 🔥\n"
-            "🌙 **LA NUIT D’AQUAMOON** 🌙\n\n"
-            "🕒 **Ce samedi à 21H30**\n"
-            "📜 *La légende raconte qu’un soir de nuit, la Lune Aquamoon se réveillera et marquera l’ouverture du serveur. Puis, une horde de graphistes et d’éditeurs s’abattra sur le serveur…*\n\n"
-            "🔔 **Ne rate pas ce moment légendaire !** 🔥"
-        ),
-        color=discord.Color.blue()  # Une couleur qui correspond à un thème créatif et mystérieux
-    )
-    embed.set_image(url="https://github.com/Iseyg91/Aquamoon/blob/main/12-topaz.png?raw=true")
+        embed = discord.Embed(
+            title="<a:fete:1172810362261880873> **Bienvenue sur le serveur Aquamoon !** <a:fete:1172810362261880873>",
+            description=(
+                "<a:paintpalette:1172810412341587970> **Aquamoon** : L'univers créatif où la magie de l'imaginaire prend vie ! 🌙✨\n\n"
+                "🎨✨ **Aquamoon** ✨🎨\n\n"
+                "#Communautaire #Créatif #Divertissement\n\n"
+                "🚀 **Boost & Avantages** → #Nitro\n"
+                "🎬 **Animés & Streaming** → #Crunchyroll\n"
+                "🖌️ **Création & Design** → #Éditeur #Graphiste\n"
+                "🤝 **Échange & Partage** → #Communautaire\n\n"
+                "🔥 **ÉVÉNEMENT À NE PAS MANQUER !** 🔥\n"
+                "🌙 **LA NUIT D’AQUAMOON** 🌙\n\n"
+                "🕒 **Ce samedi à 21H30**\n"
+                "📜 *La légende raconte qu’un soir de nuit, la Lune Aquamoon se réveillera et marquera l’ouverture du serveur. Puis, une horde de graphistes et d’éditeurs s’abattra sur le serveur…*\n\n"
+                "🔔 **Ne rate pas ce moment légendaire !** 🔥"
+            ),
+            color=discord.Color.blue()  # Une couleur qui correspond à un thème créatif et mystérieux
+        )
+        embed.set_image(url="https://github.com/Iseyg91/Aquamoon/blob/main/12-topaz.png?raw=true")
 
         await channel.send(f"{member.mention}", embed=embed)
 
     # IMPORTANT : Permet au bot de continuer à traiter les commandes
     await bot.process_commands(message)
+
 
 #---------------------------------------------------------------- Moderation
 
