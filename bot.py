@@ -1088,11 +1088,25 @@ async def on_reaction_add(reaction, user):
 
 @bot.command()
 async def gcreate(ctx):
+    await ctx.send("Quel est le nom du giveaway ?")
+
+    def check(m):
+        return m.author == ctx.author and m.channel == ctx.channel
+
+    try:
+        msg = await bot.wait_for("message", check=check, timeout=60)
+        prize_name = msg.content  # Le nom du giveaway que l'utilisateur a entré
+    except asyncio.TimeoutError:
+        await ctx.send("⏳ Temps écoulé pour spécifier le nom du giveaway.")
+        return
+
     view = GiveawayView(ctx)
+    view.prize = prize_name  # Met à jour le nom du prize avec celui donné par l'utilisateur
+
     embed = discord.Embed(
         title="🎉 **Création d'un Giveaway**",
-        description="Utilise le menu déroulant ci-dessous pour configurer ton giveaway.\n\n"
-                    "🎁 **Gain:** !! Giveaway !!\n"
+        description=f"Utilise le menu déroulant ci-dessous pour configurer ton giveaway.\n\n"
+                    f"🎁 **Gain:** {prize_name}\n"
                     "⏳ **Durée:** 60 secondes\n"
                     "🏆 **Gagnants:** 1\n"
                     f"📍 **Salon:** {ctx.channel.mention}",
