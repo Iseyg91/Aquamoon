@@ -1149,7 +1149,7 @@ class FastGiveawayView(discord.ui.View):
                         f"⏳ **Durée:** {self.duration_text}\n"
                         f"🏆 **Gagnants:** {self.winners}\n"
                         f"📍 **Salon:** {self.channel.mention}",
-            color=discord.Color.gold())  # Utilisation d'une couleur bleue sympathique
+            color=discord.Color.gold()  # Utilisation d'une couleur bleue sympathique
         )
         embed.set_footer(text="Choisissez les options dans le menu déroulant ci-dessous.")
         embed.set_thumbnail(url="https://github.com/Iseyg91/Etherya-Gestion/blob/main/t%C3%A9l%C3%A9chargement%20(9).png?raw=true")  # Logo ou icône du giveaway
