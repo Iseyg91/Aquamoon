@@ -1083,7 +1083,6 @@ class GiveawayView(discord.ui.View):
         await message.channel.send(embed=embed)
         del giveaways[message.id]
 
-
 @bot.event
 async def on_reaction_add(reaction, user):
     if user.bot:
