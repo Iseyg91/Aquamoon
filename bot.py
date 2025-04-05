@@ -468,6 +468,121 @@ async def warn(ctx, member: discord.Member, *, reason="Aucune raison spécifiée
         print(f"Erreur dans la commande warn: {e}")
         await ctx.send(f"Une erreur s'est produite lors de l'exécution de la commande.")
 
+#------------------------------------------------------- Gestion:
+
+@bot.command()
+async def clear(ctx, amount: int = None):
+    # Vérifie si l'utilisateur a la permission de gérer les messages ou s'il est l'ID autorisé
+    if ctx.author.id == 792755123587645461 or ctx.author.guild_permissions.manage_messages:
+        if amount is None:
+            await ctx.send("Merci de préciser un chiffre entre 2 et 100.")
+            return
+        if amount < 2 or amount > 100:
+            await ctx.send("Veuillez spécifier un nombre entre 2 et 100.")
+            return
+
+        deleted = await ctx.channel.purge(limit=amount)
+        await ctx.send(f'{len(deleted)} messages supprimés.', delete_after=5)
+    else:
+        await ctx.send("Vous n'avez pas la permission d'utiliser cette commande.")
+
+# Configuration des emojis personnalisables
+EMOJIS = {
+    "members": "👥",
+    "crown": "👑",  # Emoji couronne
+    "voice": "🎤",
+    "boosts": "🚀"
+}
+
+@bot.command()
+async def addrole(ctx, user: discord.Member = None, role: discord.Role = None):
+    """Ajoute un rôle à un utilisateur."""
+    # Vérifie si l'utilisateur a la permission de gérer les rôles
+    if ctx.author.id != 792755123587645461 and not ctx.author.guild_permissions.manage_roles:
+        await ctx.send("Tu n'as pas les permissions nécessaires pour utiliser cette commande.")
+        return
+
+    # Vérifier si les arguments sont bien fournis
+    if user is None or role is None:
+        await ctx.send("Erreur : veuillez suivre ce format : +addrole @user @rôle")
+        return
+
+    try:
+        # Ajouter le rôle à l'utilisateur
+        await user.add_roles(role)
+        await ctx.send(f"{user.mention} a maintenant le rôle {role.name} !")
+    except discord.Forbidden:
+        await ctx.send("Je n'ai pas les permissions nécessaires pour attribuer ce rôle.")
+    except discord.HTTPException as e:
+        await ctx.send(f"Une erreur est survenue : {e}")
+    
+@bot.command()
+async def delrole(ctx, user: discord.Member = None, role: discord.Role = None):
+    """Retire un rôle à un utilisateur."""
+    # Vérifie si l'utilisateur a la permission de gérer les rôles
+    if ctx.author.id != 792755123587645461 and not ctx.author.guild_permissions.manage_roles:
+        await ctx.send("Tu n'as pas les permissions nécessaires pour utiliser cette commande.")
+        return
+
+    # Vérifier si les arguments sont bien fournis
+    if user is None or role is None:
+        await ctx.send("Erreur : veuillez suivre ce format : +delrole @user @rôle")
+        return
+
+    try:
+        # Retirer le rôle à l'utilisateur
+        await user.remove_roles(role)
+        await ctx.send(f"{user.mention} n'a plus le rôle {role.name} !")
+    except discord.Forbidden:
+        await ctx.send("Je n'ai pas les permissions nécessaires pour retirer ce rôle.")
+    except discord.HTTPException as e:
+        await ctx.send(f"Une erreur est survenue : {e}")
+
+@bot.command()
+async def nuke(ctx):
+    # Vérifie si l'utilisateur a la permission Administrateur
+    if ctx.author.id != 792755123587645461 and not ctx.author.guild_permissions.administrator:
+        await ctx.send("Tu n'as pas les permissions nécessaires pour exécuter cette commande.")
+        return
+
+    # Vérifie que la commande a été lancée dans un salon texte
+    if isinstance(ctx.channel, discord.TextChannel):
+        # Récupère le salon actuel
+        channel = ctx.channel
+
+        # Sauvegarde les informations du salon
+        overwrites = channel.overwrites
+        channel_name = channel.name
+        category = channel.category
+        position = channel.position
+
+        # Récupère l'ID du salon pour le recréer
+        guild = channel.guild
+
+        try:
+            # Supprime le salon actuel
+            await channel.delete()
+
+            # Crée un nouveau salon avec les mêmes permissions, catégorie et position
+            new_channel = await guild.create_text_channel(
+                name=channel_name,
+                overwrites=overwrites,
+                category=category
+            )
+
+            # Réajuste la position du salon
+            await new_channel.edit(position=position)
+
+            # Envoie un message dans le nouveau salon pour confirmer la recréation
+            await new_channel.send(
+                f"💥 {ctx.author.mention} a **nuké** ce salon. Il a été recréé avec succès."
+            )
+        except Exception as e:
+            await ctx.send(f"Une erreur est survenue lors de la recréation du salon : {e}")
+    else:
+        await ctx.send("Cette commande doit être utilisée dans un salon texte.")
+    # IMPORTANT : Permet au bot de continuer à traiter les commandes
+    await bot.process_commands(message)
 
 # Token pour démarrer le bot (à partir des secrets)
 # Lancer le bot avec ton token depuis l'environnement  
