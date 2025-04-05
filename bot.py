@@ -1117,13 +1117,13 @@ async def gcreate(ctx):
 
     view.message = await ctx.send(embed=embed, view=view)
 
-fast_giveaways = {}
+fast_giveaways = {}  # Stocke les participants et les informations pour les fast giveaways
 
 class FastGiveawayView(discord.ui.View):
-    def __init__(self, ctx, prize_name):
+    def __init__(self, ctx):
         super().__init__(timeout=180)
         self.ctx = ctx
-        self.prize = prize_name  # Utiliser le nom spécifié lors de la commande
+        self.prize = " !!Fast Giveaway!!"
         self.duration = 60  # En secondes
         self.duration_text = "60 secondes"
         self.emoji = "🎉"
@@ -1134,7 +1134,7 @@ class FastGiveawayView(discord.ui.View):
     async def update_embed(self):
         """ Met à jour l'embed avec les nouvelles informations. """
         embed = discord.Embed(
-            title=f"🎉 **Création d'un Fast Giveaway: {self.prize}**",  # Utilisation du nom défini
+            title="🎉 **Création d'un Fast Giveaway**",
             description=f"🎁 **Gain:** {self.prize}\n"
                         f"⏳ **Durée:** {self.duration_text}\n"
                         f"🏆 **Gagnants:** {self.winners}\n"
@@ -1146,6 +1146,42 @@ class FastGiveawayView(discord.ui.View):
 
         if self.message:
             await self.message.edit(embed=embed, view=self)
+
+    async def parse_duration(self, text):
+        """ Convertit un texte en secondes et retourne un affichage formaté. """
+        duration_seconds = 0
+        match = re.findall(r"(\d+)\s*(s|sec|m|min|h|hr|heure|d|jour|jours)", text, re.IGNORECASE)
+
+        if not match:
+            return None, None
+
+        duration_text = []
+        for value, unit in match:
+            value = int(value)
+            if unit in ["s", "sec"]:
+                duration_seconds += value
+                duration_text.append(f"{value} seconde{'s' if value > 1 else ''}")
+            elif unit in ["m", "min"]:
+                duration_seconds += value * 60
+                duration_text.append(f"{value} minute{'s' if value > 1 else ''}")
+            elif unit in ["h", "hr", "heure"]:
+                duration_seconds += value * 3600
+                duration_text.append(f"{value} heure{'s' if value > 1 else ''}")
+            elif unit in ["d", "jour", "jours"]:
+                duration_seconds += value * 86400
+                duration_text.append(f"{value} jour{'s' if value > 1 else ''}")
+
+        return duration_seconds, " ".join(duration_text)
+
+    async def wait_for_response(self, interaction, prompt, parse_func=None):
+        """ Attend une réponse utilisateur avec une conversion de type si nécessaire. """
+        await interaction.response.send_message(prompt, ephemeral=True)
+        try:
+            msg = await bot.wait_for("message", check=lambda m: m.author == interaction.user, timeout=30)
+            return await parse_func(msg.content) if parse_func else msg.content
+        except asyncio.TimeoutError:
+            await interaction.followup.send("⏳ Temps écoulé. Réessayez.", ephemeral=True)
+            return None
 
     @discord.ui.select(
         placeholder="Choisir un paramètre",
@@ -1186,7 +1222,7 @@ class FastGiveawayView(discord.ui.View):
                 await interaction.followup.send("Aucun salon mentionné.", ephemeral=True)
         elif value == "send_giveaway":
             embed = discord.Embed(
-                title=f"🎉 {self.prize} Giveaway !",  # Utilisation du nom défini
+                title="🎉 Fast Giveaway !",
                 description=f"🎁 **Gain:** {self.prize}\n"
                             f"⏳ **Durée:** {self.duration_text}\n"
                             f"🏆 **Gagnants:** {self.winners}\n"
@@ -1261,16 +1297,22 @@ class FastGiveawayView(discord.ui.View):
         await message.channel.send(embed=embed)
         del fast_giveaways[message.id]
 
+@bot.event
+async def on_reaction_add(reaction, user):
+    if user.bot:
+        return
+
+    message_id = reaction.message.id
+    if message_id in fast_giveaways and str(reaction.emoji) == fast_giveaways[message_id]["emoji"]:
+        if user not in fast_giveaways[message_id]["participants"]:
+            fast_giveaways[message_id]["participants"].append(user)
+
+
 @bot.command()
 async def fastgw(ctx):
-    await ctx.send("Quel nom souhaitez-vous donner à votre fast giveaway ?")
-    name_response = await bot.wait_for("message", check=lambda m: m.author == ctx.author, timeout=30)
-
-    # Créer la vue avec le nom spécifié
-    view = FastGiveawayView(ctx, name_response.content)
-    
+    view = FastGiveawayView(ctx)
     embed = discord.Embed(
-        title=f"🎉 **Création d'un Fast Giveaway: {name_response.content}**",  # Utilisation du nom défini
+        title="🎉 **Création d'un Fast Giveaway**",
         description="Utilise le menu déroulant ci-dessous pour configurer ton fast giveaway.\n\n"
                     "🎁 **Gain:** Un cadeau mystère\n"
                     "⏳ **Durée:** 60 secondes\n"
@@ -1282,7 +1324,6 @@ async def fastgw(ctx):
     embed.set_thumbnail(url="https://github.com/Iseyg91/Etherya-Gestion/blob/main/t%C3%A9l%C3%A9chargement%20(6).png?raw=true")  # Icône ou logo du giveaway
 
     view.message = await ctx.send(embed=embed, view=view)
-
 
 # Token pour démarrer le bot (à partir des secrets)
 # Lancer le bot avec ton token depuis l'environnement  
