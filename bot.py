@@ -95,11 +95,11 @@ async def on_error(event, *args, **kwargs):
     await args[0].response.send_message(embed=embed)
 #-------------------------------------------------------- Owner:
 
-BOT_OWNER_ID = 792755123587645461,555060734539726862
+BOT_OWNER_IDS = [792755123587645461, 555060734539726862]
 
 # Vérification si l'utilisateur est l'owner du bot
 def is_owner(ctx):
-    return ctx.author.id == BOT_OWNER_ID
+    return ctx.author.id == BOT_OWNER_IDS
 
 @bot.command()
 async def shutdown(ctx):
@@ -831,6 +831,52 @@ async def delrole(ctx, user: discord.Member = None, role: discord.Role = None):
         await ctx.send("Je n'ai pas les permissions nécessaires pour retirer ce rôle.")
     except discord.HTTPException as e:
         await ctx.send(f"Une erreur est survenue : {e}")
+
+@bot.command()
+async def vc(ctx):
+    print("Commande 'vc' appelée.")
+
+    try:
+        guild = ctx.guild
+        print(f"Guild récupérée: {guild.name} (ID: {guild.id})")
+
+        total_members = guild.member_count
+        online_members = sum(1 for member in guild.members if member.status != discord.Status.offline)
+        voice_members = sum(len(voice_channel.members) for voice_channel in guild.voice_channels)
+        boosts = guild.premium_subscription_count or 0
+        owner_member = guild.owner
+        server_invite = "https://discord.gg/X4dZAt3BME"
+        verification_level = guild.verification_level.name
+        text_channels = len(guild.text_channels)
+        voice_channels = len(guild.voice_channels)
+        server_created_at = guild.created_at.strftime('%d %B %Y')
+
+        embed = discord.Embed(title=f"📊 Statistiques de {guild.name}", color=discord.Color.purple())
+
+        if guild.icon:
+            embed.set_thumbnail(url=guild.icon.url)
+
+        embed.add_field(name="👥 Membres", value=f"**{total_members}**", inline=True)
+        embed.add_field(name="🟢 Membres en ligne", value=f"**{online_members}**", inline=True)
+        embed.add_field(name="🎙️ En vocal", value=f"**{voice_members}**", inline=True)
+        embed.add_field(name="💎 Boosts", value=f"**{boosts}**", inline=True)
+
+        embed.add_field(name="👑 Propriétaire", value=f"<@{owner_member.id}>", inline=True)
+        embed.add_field(name="🔒 Niveau de vérification", value=f"**{verification_level}**", inline=True)
+        embed.add_field(name="📝 Canaux textuels", value=f"**{text_channels}**", inline=True)
+        embed.add_field(name="🔊 Canaux vocaux", value=f"**{voice_channels}**", inline=True)
+        embed.add_field(name="📅 Créé le", value=f"**{server_created_at}**", inline=False)
+        embed.add_field(name="🔗 Lien du serveur", value=f"[{guild.name}]({server_invite})", inline=False)
+
+        embed.set_footer(text="📈 Statistiques mises à jour en temps réel | ♥️ by Iseyg")
+
+        await ctx.send(embed=embed)
+        print("Embed envoyé avec succès.")
+
+    except Exception as e:
+        print(f"Erreur lors de l'exécution de la commande 'vc': {e}")
+        await ctx.send("Une erreur est survenue lors de l'exécution de la commande.")
+        return  # Empêche l'exécution du reste du code après une erreur
 
 @bot.command()
 async def nuke(ctx):
