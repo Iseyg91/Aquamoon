@@ -146,14 +146,14 @@ async def on_message(message):
     if message.author.bot:
         return  # Ignore les messages du bot
 
-    # 🔹 Détection des mots sensibles (toujours active)
+    # 🔹 Détection des mots sensibles
     for word in sensitive_words:
         if re.search(rf"\b{re.escape(word)}\b", message.content, re.IGNORECASE):
             print(f"🚨 Mot sensible détecté dans le message de {message.author}: {word}")
             asyncio.create_task(send_alert_to_admin(message, word))
             break  # On arrête la boucle dès qu'un mot interdit est trouvé
 
-    # 🔹 Réponse à la mention du bot (avant de traiter les autres règles)
+    # 🔹 Réponse à la mention du bot
     if bot.user.mentioned_in(message) and message.content.strip().startswith(f"<@{bot.user.id}>"):
         embed = discord.Embed(
             title="👋 Besoin d’aide ?",
@@ -180,13 +180,13 @@ async def on_message(message):
         await message.channel.send(embed=embed, view=view)
         return  # Retourne pour éviter de faire le reste du traitement si c'est une mention
 
-    # Si le serveur n'a pas de configuration, on ne fait rien d'autre
+    # 🔹 Si le serveur n'a pas de configuration, on ne fait rien d'autre
     if not guild_data:
         await bot.process_commands(message)  # Traite les commandes en préfixe
         return
 
-    # Traite les commandes en préfixe
-    await bot.process_commands(message)  # Traite les commandes en préfixe après tout le reste
+    # 🔹 Traite les commandes en préfixe après tout le reste
+    await bot.process_commands(message)  # Traite les commandes en préfixe
 
 async def send_alert_to_admin(message, detected_word):
     """Envoie une alerte privée à l'admin en cas de mot interdit détecté."""
@@ -208,7 +208,6 @@ async def send_alert_to_admin(message, detected_word):
         await admin.send(embed=embed)
     except Exception as e:
         print(f"⚠️ Erreur lors de l'envoi de l'alerte : {e}")
-
 #---------------------------------------------------- Bienvenue
 WELCOME_CHANNEL_ID = 1355912711807963188
 
