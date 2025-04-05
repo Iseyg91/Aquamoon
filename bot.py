@@ -1120,10 +1120,10 @@ async def gcreate(ctx):
 fast_giveaways = {}  # Stocke les participants et les informations pour les fast giveaways
 
 class FastGiveawayView(discord.ui.View):
-    def __init__(self, ctx):
+    def __init__(self, ctx, prize_name):
         super().__init__(timeout=180)
         self.ctx = ctx
-        self.prize = " !!Fast Giveaway!!"
+        self.prize = prize_name  # Utilisation du nom personnalisé pour le giveaway
         self.duration = 60  # En secondes
         self.duration_text = "60 secondes"
         self.emoji = "🎉"
@@ -1186,7 +1186,6 @@ class FastGiveawayView(discord.ui.View):
     @discord.ui.select(
         placeholder="Choisir un paramètre",
         options=[
-            discord.SelectOption(label="🎁 Modifier le gain", value="edit_prize"),
             discord.SelectOption(label="⏳ Modifier la durée", value="edit_duration"),
             discord.SelectOption(label="🏆 Modifier le nombre de gagnants", value="edit_winners"),
             discord.SelectOption(label="💬 Modifier le salon", value="edit_channel"),
@@ -1196,12 +1195,7 @@ class FastGiveawayView(discord.ui.View):
     async def select_action(self, interaction: discord.Interaction, select: discord.ui.Select):
         value = select.values[0]
 
-        if value == "edit_prize":
-            response = await self.wait_for_response(interaction, "Quel est le gain du giveaway ?", str)
-            if response:
-                self.prize = response
-                await self.update_embed()
-        elif value == "edit_duration":
+        if value == "edit_duration":
             response = await self.wait_for_response(interaction, 
                 "Durée du giveaway ? (ex: 10min, 2h, 1jour)", self.parse_duration)
             if response and response[0] > 0:
@@ -1297,26 +1291,21 @@ class FastGiveawayView(discord.ui.View):
         await message.channel.send(embed=embed)
         del fast_giveaways[message.id]
 
-@bot.event
-async def on_reaction_add(reaction, user):
-    if user.bot:
-        return
-
-    message_id = reaction.message.id
-    if message_id in fast_giveaways and str(reaction.emoji) == fast_giveaways[message_id]["emoji"]:
-        if user not in fast_giveaways[message_id]["participants"]:
-            fast_giveaways[message_id]["participants"].append(user)
-
-
 @bot.command()
 async def fastgw(ctx):
-    view = FastGiveawayView(ctx)
+    # Demander le nom du fast giveaway
+    await ctx.send("Quel est le nom du fast giveaway ?")
+    prize_name = await bot.wait_for("message", check=lambda m: m.author == ctx.author, timeout=30)
+    
+    # Créer une vue de giveaway avec le nom donné
+    view = FastGiveawayView(ctx, prize_name.content)
+    
     embed = discord.Embed(
         title="🎉 **Création d'un Fast Giveaway**",
-        description="Utilise le menu déroulant ci-dessous pour configurer ton fast giveaway.\n\n"
-                    "🎁 **Gain:** Un cadeau mystère\n"
-                    "⏳ **Durée:** 60 secondes\n"
-                    "🏆 **Gagnants:** 1\n"
+        description=f"Utilise le menu déroulant ci-dessous pour configurer ton fast giveaway.\n\n"
+                    f"🎁 **Gain:** {prize_name.content}\n"
+                    f"⏳ **Durée:** 60 secondes\n"
+                    f"🏆 **Gagnants:** 1\n"
                     f"📍 **Salon:** {ctx.channel.mention}",
         color=discord.Color.blurple()  # Couleur de l'embed plus attractive
     )
