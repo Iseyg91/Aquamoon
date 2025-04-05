@@ -926,23 +926,26 @@ async def nuke(ctx):
 
 
 #--------------------------------------------------------- Giveaway:
-
 @bot.command()
-async def gcreate(ctx, nom_giveaway: str, gagnants: int, duree: str, emoji: str):
-    # Vérification du nombre de gagnants
-    if not gagnants.isdigit() or int(gagnants) < 1:
-        await ctx.send("Erreur : Le nombre de gagnants doit être un entier supérieur à 0.")
+async def gcreate(ctx, nom_giveaway: str, gagnants: str, duree: str, emoji: str):
+    # Vérification du format du nombre de gagnants
+    if not gagnants.isdigit():
+        await ctx.send("Erreur : Le nombre de gagnants doit être un nombre entier valide.")
+        return
+    gagnants = int(gagnants)
+    if gagnants < 1:
+        await ctx.send("Erreur : Le nombre de gagnants doit être supérieur à 0.")
         return
 
-    # Vérification de la durée
+    # Vérification du format de la durée
     try:
-        duree_seconds = int(duree) * 60  # Conversion de la durée en minutes en secondes
+        duree_minutes = int(duree)
     except ValueError:
-        await ctx.send("Erreur : La durée doit être un nombre entier.")
+        await ctx.send("Erreur : La durée doit être un nombre entier valide (en minutes).")
         return
 
-    if duree_seconds <= 0:
-        await ctx.send("Erreur : La durée doit être supérieure à 0 minutes.")
+    if duree_minutes <= 0:
+        await ctx.send("Erreur : La durée doit être supérieure à 0 minute(s).")
         return
 
     # Vérification de l'emoji
@@ -959,14 +962,14 @@ async def gcreate(ctx, nom_giveaway: str, gagnants: int, duree: str, emoji: str)
         color=discord.Color.green()
     )
     embed.add_field(name="Gagnants", value=f"{gagnants} gagnant(s)", inline=False)
-    embed.add_field(name="Durée", value=f"{duree} minute(s)", inline=False)
+    embed.add_field(name="Durée", value=f"{duree_minutes} minute(s)", inline=False)
     embed.set_footer(text=f"Organisé par {ctx.author.display_name}", icon_url=ctx.author.avatar_url)
 
     giveaway_message = await ctx.send(embed=embed)
     await giveaway_message.add_reaction(emoji)
 
     # Attendre la durée du giveaway
-    await asyncio.sleep(duree_seconds)
+    await asyncio.sleep(duree_minutes * 60)  # Conversion en secondes
 
     # Récupérer les réactions
     message = await ctx.channel.fetch_message(giveaway_message.id)
@@ -980,7 +983,10 @@ async def gcreate(ctx, nom_giveaway: str, gagnants: int, duree: str, emoji: str)
         return
 
     # Sélectionner les gagnants
-    gagnants_list = random.sample(users, min(gagnants, len(users)))
+    if len(users) < gagnants:
+        gagnants = len(users)  # Si moins de participants, ajuster le nombre de gagnants
+
+    gagnants_list = random.sample(users, gagnants)
 
     # Annoncer les gagnants
     gagnants_mentions = ', '.join([user.mention for user in gagnants_list])
@@ -988,6 +994,7 @@ async def gcreate(ctx, nom_giveaway: str, gagnants: int, duree: str, emoji: str)
 
     # Optionnel: Supprimer le message de giveaway après l'annonce
     await giveaway_message.delete()
+
 
 # Token pour démarrer le bot (à partir des secrets)
 # Lancer le bot avec ton token depuis l'environnement  
