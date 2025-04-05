@@ -878,6 +878,71 @@ async def nuke(ctx):
     # IMPORTANT : Permet au bot de continuer à traiter les commandes
     await bot.process_commands(message)
 
+
+#--------------------------------------------------------- Giveaway:
+
+@bot.command()
+async def gcreate(ctx, nom_giveaway: str, gagnants: int, duree: str, emoji: str):
+    # Vérification du nombre de gagnants
+    if not gagnants.isdigit() or int(gagnants) < 1:
+        await ctx.send("Erreur : Le nombre de gagnants doit être un entier supérieur à 0.")
+        return
+
+    # Vérification de la durée
+    try:
+        duree_seconds = int(duree) * 60  # Conversion de la durée en minutes en secondes
+    except ValueError:
+        await ctx.send("Erreur : La durée doit être un nombre entier.")
+        return
+
+    if duree_seconds <= 0:
+        await ctx.send("Erreur : La durée doit être supérieure à 0 minutes.")
+        return
+
+    # Vérification de l'emoji
+    try:
+        await ctx.message.add_reaction(emoji)
+    except discord.HTTPException:
+        await ctx.send("Erreur : L'emoji spécifié est invalide ou non supporté.")
+        return
+
+    # Création du message de giveaway
+    embed = discord.Embed(
+        title=f"🎉 **Giveaway - {nom_giveaway}** 🎉",
+        description=f"Réagissez avec {emoji} pour participer à ce giveaway !",
+        color=discord.Color.green()
+    )
+    embed.add_field(name="Gagnants", value=f"{gagnants} gagnant(s)", inline=False)
+    embed.add_field(name="Durée", value=f"{duree} minute(s)", inline=False)
+    embed.set_footer(text=f"Organisé par {ctx.author.display_name}", icon_url=ctx.author.avatar_url)
+
+    giveaway_message = await ctx.send(embed=embed)
+    await giveaway_message.add_reaction(emoji)
+
+    # Attendre la durée du giveaway
+    await asyncio.sleep(duree_seconds)
+
+    # Récupérer les réactions
+    message = await ctx.channel.fetch_message(giveaway_message.id)
+    users = await message.reactions[0].users().flatten()
+
+    # Supprimer le bot de la liste des participants
+    users = [user for user in users if user != bot.user]
+
+    if len(users) == 0:
+        await ctx.send("Désolé, personne n'a participé à ce giveaway.")
+        return
+
+    # Sélectionner les gagnants
+    gagnants_list = random.sample(users, min(gagnants, len(users)))
+
+    # Annoncer les gagnants
+    gagnants_mentions = ', '.join([user.mention for user in gagnants_list])
+    await ctx.send(f"Félicitations {gagnants_mentions}! Vous avez gagné le giveaway : {nom_giveaway}. 🎉")
+
+    # Optionnel: Supprimer le message de giveaway après l'annonce
+    await giveaway_message.delete()
+
 # Token pour démarrer le bot (à partir des secrets)
 # Lancer le bot avec ton token depuis l'environnement  
 keep_alive()
