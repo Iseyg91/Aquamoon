@@ -1236,7 +1236,7 @@ class FastGiveawayView(discord.ui.View):
                 "winners": self.winners,
                 "emoji": self.emoji,
                 "participants": [],
-                "start_time": asyncio.get_event_loop().time(),
+                "start_time": None,  # Pas encore démarré
             }
 
             await interaction.response.send_message(f"🎉 Giveaway envoyé dans {self.channel.mention} !", ephemeral=True)
@@ -1259,17 +1259,20 @@ class FastGiveawayView(discord.ui.View):
 
         # Envoi du message privé au gagnant et ajout de la réaction pour la vérification du temps de réponse
         winner = winners[0]  # Exemple pour un seul gagnant
-        start_time = data["start_time"]
         winner_dm = await winner.create_dm()
         dm_message = await winner_dm.send(f"Félicitations, {winner.mention}! Tu as gagné {data['prize']}! Réagis avec {self.emoji} pour valider ta victoire.")
+
+        # Envoi du message privé et lancement du minuteur au moment de l'envoi
+        fast_giveaways[message.id]["start_time"] = asyncio.get_event_loop().time()  # Démarre le minuteur ici
 
         # Attente de la réaction et calcul du temps
         await dm_message.add_reaction(self.emoji)
         def check(reaction, user):
             return user == winner and str(reaction.emoji) == self.emoji
+
         try:
             reaction, _ = await bot.wait_for('reaction_add', check=check, timeout=60)
-            reaction_time = asyncio.get_event_loop().time() - start_time  # Temps de réaction
+            reaction_time = asyncio.get_event_loop().time() - fast_giveaways[message.id]["start_time"]  # Temps depuis l'envoi du message privé
             reaction_time_seconds = round(reaction_time, 2)
             await message.channel.send(f"Le gagnant {winner.mention} a réagi en {reaction_time_seconds} secondes.")
         except asyncio.TimeoutError:
@@ -1306,7 +1309,7 @@ async def fastgw(ctx):
     embed = discord.Embed(
         title="🎉 **Création d'un Fast Giveaway**",
         description="Utilise le menu déroulant ci-dessous pour configurer ton fast giveaway.\n\n"
-                    "🎁 **Gain:** !! Giveaway !!\n"
+                    "🎁 **Gain:** Un cadeau mystère\n"
                     "⏳ **Durée:** 60 secondes\n"
                     "🏆 **Gagnants:** 1\n"
                     f"📍 **Salon:** {ctx.channel.mention}",
