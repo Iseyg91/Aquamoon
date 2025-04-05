@@ -25,7 +25,7 @@ import platform
 token = os.environ['AQUAMOON']
 intents = discord.Intents.all()
 start_time = time.time()
-bot = commands.Bot(command_prefix=".", intents=intents)
+bot = commands.Bot(command_prefix="!", intents=intents)
 
 @bot.event
 async def on_ready():
@@ -1111,6 +1111,8 @@ async def gcreate(ctx):
     embed.set_thumbnail(url="https://github.com/Iseyg91/Etherya-Gestion/blob/main/t%C3%A9l%C3%A9chargement%20(6).png?raw=true")  # Icône ou logo du giveaway
 
     view.message = await ctx.send(embed=embed, view=view)
+
+fast_giveaways = {}
 
 class FastGiveawayView(discord.ui.View):
     def __init__(self, ctx, prize_name):
