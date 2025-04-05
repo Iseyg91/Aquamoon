@@ -953,6 +953,7 @@ async def gcreate(ctx, nom_giveaway: str, gagnants: str, duree: str, emoji: str)
 
     # Vérification de l'emoji
     try:
+        # Utilisation de la méthode add_reaction sur le message de giveaway pour vérifier l'emoji
         await ctx.message.add_reaction(emoji)
     except discord.HTTPException:
         await ctx.send("Erreur : L'emoji spécifié est invalide ou non supporté.")
@@ -966,7 +967,7 @@ async def gcreate(ctx, nom_giveaway: str, gagnants: str, duree: str, emoji: str)
     )
     embed.add_field(name="Gagnants", value=f"{gagnants} gagnant(s)", inline=False)
     embed.add_field(name="Durée", value=f"{duree_minutes} minute(s)", inline=False)
-    embed.set_footer(text=f"Organisé par {ctx.author.display_name}", icon_url=ctx.author.avatar_url)
+    embed.set_footer(text=f"Organisé par {ctx.author.display_name}", icon_url=ctx.author.avatar.url)
 
     giveaway_message = await ctx.send(embed=embed)
     await giveaway_message.add_reaction(emoji)
@@ -979,7 +980,7 @@ async def gcreate(ctx, nom_giveaway: str, gagnants: str, duree: str, emoji: str)
     users = await message.reactions[0].users().flatten()
 
     # Supprimer le bot de la liste des participants
-    users = [user for user in users if user != bot.user]
+    users = [user for user in users if user != ctx.bot.user]
 
     if len(users) == 0:
         await ctx.send("Désolé, personne n'a participé à ce giveaway.")
