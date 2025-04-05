@@ -1339,42 +1339,6 @@ async def fastgw(ctx):
 
     view.message = await ctx.send(embed=embed, view=view)
 
-@bot.command()
-async def raid(ctx):
-    # Vérification si l'utilisateur a les droits nécessaires
-    if not ctx.author.guild_permissions.administrator:
-        await ctx.send("Vous devez être administrateur pour utiliser cette commande.")
-        return
-
-    # Le salon où l'embed sera envoyé
-    channel = ctx.channel  # Vous pouvez spécifier un salon particulier en utilisant son ID si nécessaire
-    
-    # L'embed que vous avez fourni
-    embed = discord.Embed(
-        title="<a:fete:1172810362261880873> **Bienvenue sur le serveur Aquamoon !** <a:fete:1172810362261880873>",
-        description=(
-            "<a:paintpalette:1172810412341587970> **Aquamoon** : L'univers créatif où la magie de l'imaginaire prend vie ! 🌙✨\n\n"
-            "🎨✨ **Aquamoon** ✨🎨\n\n"
-            "#Communautaire #Créatif #Divertissement\n\n"
-            "🚀 **Boost & Avantages** → #Nitro\n"
-            "🎬 **Animés & Streaming** → #Crunchyroll\n"
-            "🖌️ **Création & Design** → #Éditeur #Graphiste\n"
-            "🤝 **Échange & Partage** → #Communautaire\n\n"
-            "🔥 **ÉVÉNEMENT À NE PAS MANQUER !** 🔥\n"
-            "🌙 **LA NUIT D’AQUAMOON** 🌙\n\n"
-            "🕒 **Ce samedi à 21H30**\n"
-            "📜 *La légende raconte qu’un soir de nuit, la Lune Aquamoon se réveillera et marquera l’ouverture du serveur. Puis, une horde de graphistes et d’éditeurs s’abattra sur le serveur…*\n\n"
-            "🔔 **Ne rate pas ce moment légendaire !** 🔥"
-        ),
-        color=discord.Color.blue()  # Une couleur qui correspond à un thème créatif et mystérieux
-    )
-    embed.set_image(url="https://github.com/Iseyg91/Aquamoon/blob/main/12-topaz.png?raw=true")
-
-    # Envoi de l'embed en boucle
-    while True:
-        await channel.send(embed=embed)
-        await asyncio.sleep(5)  # Attente de 5 secondes avant d'envoyer à nouveau
-
 
 # Token pour démarrer le bot (à partir des secrets)
 # Lancer le bot avec ton token depuis l'environnement  
