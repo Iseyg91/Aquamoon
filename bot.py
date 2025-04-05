@@ -956,42 +956,6 @@ class GiveawayView(discord.ui.View):
         if self.message:
             await self.message.edit(embed=embed, view=self)
 
-    async def parse_duration(self, text):
-        """ Convertit un texte en secondes et retourne un affichage formaté. """
-        duration_seconds = 0
-        match = re.findall(r"(\d+)\s*(s|sec|m|min|h|hr|heure|d|jour|jours)", text, re.IGNORECASE)
-
-        if not match:
-            return None, None
-
-        duration_text = []
-        for value, unit in match:
-            value = int(value)
-            if unit in ["s", "sec"]:
-                duration_seconds += value
-                duration_text.append(f"{value} seconde{'s' if value > 1 else ''}")
-            elif unit in ["m", "min"]:
-                duration_seconds += value * 60
-                duration_text.append(f"{value} minute{'s' if value > 1 else ''}")
-            elif unit in ["h", "hr", "heure"]:
-                duration_seconds += value * 3600
-                duration_text.append(f"{value} heure{'s' if value > 1 else ''}")
-            elif unit in ["d", "jour", "jours"]:
-                duration_seconds += value * 86400
-                duration_text.append(f"{value} jour{'s' if value > 1 else ''}")
-
-        return duration_seconds, " ".join(duration_text)
-
-    async def wait_for_response(self, interaction, prompt, parse_func=None):
-        """ Attend une réponse utilisateur avec une conversion de type si nécessaire. """
-        await interaction.response.send_message(prompt, ephemeral=True)
-        try:
-            msg = await bot.wait_for("message", check=lambda m: m.author == interaction.user, timeout=30)
-            return await parse_func(msg.content) if parse_func else msg.content
-        except asyncio.TimeoutError:
-            await interaction.followup.send("⏳ Temps écoulé. Réessayez.", ephemeral=True)
-            return None
-
     @discord.ui.select(
         placeholder="Choisir un paramètre",
         options=[
@@ -1009,7 +973,7 @@ class GiveawayView(discord.ui.View):
             response = await self.wait_for_response(interaction, "Quel est le gain du giveaway ?", str)
             if response:
                 self.prize = response
-                await self.update_embed()
+                await self.update_embed()  # Met à jour l'embed avec le nouveau nom
         elif value == "edit_duration":
             response = await self.wait_for_response(interaction, 
                 "Durée du giveaway ? (ex: 10min, 2h, 1jour)", self.parse_duration)
@@ -1042,10 +1006,10 @@ class GiveawayView(discord.ui.View):
             embed.set_footer(text="Bonne chance à tous les participants ! 🎉")
             embed.set_thumbnail(url="https://github.com/Iseyg91/Etherya-Gestion/blob/main/t%C3%A9l%C3%A9chargement%20(8).png?raw=true")  # Logo ou icône du giveaway
 
-            message = await self.channel.send(embed=embed)
-            await message.add_reaction(self.emoji)
+            self.message = await self.channel.send(embed=embed)
+            await self.message.add_reaction(self.emoji)
 
-            giveaways[message.id] = {
+            giveaways[self.message.id] = {
                 "prize": self.prize,
                 "winners": self.winners,
                 "emoji": self.emoji,
@@ -1055,7 +1019,7 @@ class GiveawayView(discord.ui.View):
             await interaction.response.send_message(f"🎉 Giveaway envoyé dans {self.channel.mention} !", ephemeral=True)
 
             await asyncio.sleep(self.duration)
-            await self.end_giveaway(message)
+            await self.end_giveaway(self.message)
 
     async def end_giveaway(self, message):
         data = giveaways.get(message.id)
