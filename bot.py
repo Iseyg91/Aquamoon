@@ -211,15 +211,6 @@ async def getbotinfo(ctx):
             inline=False
         )
 
-        # Ajout d'un bouton d'invitation
-        view = discord.ui.View()
-        invite_button = discord.ui.Button(
-            label="📩 Inviter le Bot",
-            style=discord.ButtonStyle.link,
-            url="https://discord.com/oauth2/authorize?client_id=1356693934012891176&permissions=8&integration_type=0&scope=bot"
-        )
-        view.add_item(invite_button)
-
         await ctx.send(embed=embed, view=view)
 
         end_time = time.time()
