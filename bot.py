@@ -928,6 +928,9 @@ async def nuke(ctx):
 #--------------------------------------------------------- Giveaway:
 @bot.command()
 async def gcreate(ctx, nom_giveaway: str, gagnants: str, duree: str, emoji: str):
+    # Confirmation que la commande a bien été appelée
+    print(f"Commande gcreate appelée avec les arguments: {nom_giveaway}, {gagnants}, {duree}, {emoji}")
+    
     # Vérification du format du nombre de gagnants
     if not gagnants.isdigit():
         await ctx.send("Erreur : Le nombre de gagnants doit être un nombre entier valide.")
@@ -994,7 +997,6 @@ async def gcreate(ctx, nom_giveaway: str, gagnants: str, duree: str, emoji: str)
 
     # Optionnel: Supprimer le message de giveaway après l'annonce
     await giveaway_message.delete()
-
 
 # Token pour démarrer le bot (à partir des secrets)
 # Lancer le bot avec ton token depuis l'environnement  
