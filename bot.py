@@ -948,7 +948,7 @@ class GiveawayView(discord.ui.View):
                         f"⏳ **Durée:** {self.duration_text}\n"
                         f"🏆 **Gagnants:** {self.winners}\n"
                         f"📍 **Salon:** {self.channel.mention}",
-            color=discord.Color.blurple()  # Utilisation d'une couleur bleue sympathique
+            color=discord.Color.gold()  # Utilisation d'une couleur bleue sympathique
         )
         embed.set_footer(text="Choisissez les options dans le menu déroulant ci-dessous.")
         embed.set_thumbnail(url="https://github.com/Iseyg91/Etherya-Gestion/blob/main/t%C3%A9l%C3%A9chargement%20(9).png?raw=true")  # Logo ou icône du giveaway
@@ -1037,7 +1037,7 @@ class GiveawayView(discord.ui.View):
                             f"🏆 **Gagnants:** {self.winners}\n"
                             f"📍 **Salon:** {self.channel.mention}\n\n"
                             f"Réagis avec {self.emoji} pour participer !",
-                color=discord.Color.green()  # Utilisation d'une couleur de succès pour l'envoi
+                color=discord.Color.gold()  # Utilisation d'une couleur de succès pour l'envoi
             )
             embed.set_footer(text="Bonne chance à tous les participants ! 🎉")
             embed.set_thumbnail(url="https://github.com/Iseyg91/Etherya-Gestion/blob/main/t%C3%A9l%C3%A9chargement%20(8).png?raw=true")  # Logo ou icône du giveaway
@@ -1075,7 +1075,7 @@ class GiveawayView(discord.ui.View):
             description=f"🎁 **Gain:** {data['prize']}\n"
                         f"🏆 **Gagnants:** {winners_mentions}\n\n"
                         f"Merci d'avoir participé !",
-            color=discord.Color.green()
+            color=discord.Color.gold()
         )
         embed.set_footer(text="Merci à tous ! 🎉")
         embed.set_thumbnail(url="https://github.com/Iseyg91/Etherya-Gestion/blob/main/t%C3%A9l%C3%A9chargement%20(7).png?raw=true")  # Icône ou logo de fin de giveaway
@@ -1120,7 +1120,7 @@ async def gcreate(ctx):
                     "⏳ **Durée:** 60 secondes\n"
                     "🏆 **Gagnants:** 1\n"
                     f"📍 **Salon:** {ctx.channel.mention}",
-        color=discord.Color.blurple()
+        color=discord.Color.gold()
     )
     embed.set_footer(text="Choisis les options dans le menu déroulant ci-dessous.")
     embed.set_thumbnail(url="https://github.com/Iseyg91/Etherya-Gestion/blob/main/t%C3%A9l%C3%A9chargement%20(6).png?raw=true")
@@ -1149,7 +1149,7 @@ class FastGiveawayView(discord.ui.View):
                         f"⏳ **Durée:** {self.duration_text}\n"
                         f"🏆 **Gagnants:** {self.winners}\n"
                         f"📍 **Salon:** {self.channel.mention}",
-            color=discord.Color.blurple()  # Utilisation d'une couleur bleue sympathique
+            color=discord.Color.gold())  # Utilisation d'une couleur bleue sympathique
         )
         embed.set_footer(text="Choisissez les options dans le menu déroulant ci-dessous.")
         embed.set_thumbnail(url="https://github.com/Iseyg91/Etherya-Gestion/blob/main/t%C3%A9l%C3%A9chargement%20(9).png?raw=true")  # Logo ou icône du giveaway
@@ -1232,7 +1232,7 @@ class FastGiveawayView(discord.ui.View):
                             f"🏆 **Gagnants:** {self.winners}\n"
                             f"📍 **Salon:** {self.channel.mention}\n\n"
                             f"Réagis avec {self.emoji} pour participer !",
-                color=discord.Color.green()  # Utilisation d'une couleur de succès pour l'envoi
+                color=discord.Color.gold()  # Utilisation d'une couleur de succès pour l'envoi
             )
             embed.set_footer(text="Bonne chance à tous les participants ! 🎉")
             embed.set_thumbnail(url="https://github.com/Iseyg91/Etherya-Gestion/blob/main/t%C3%A9l%C3%A9chargement%20(8).png?raw=true")  # Logo ou icône du giveaway
@@ -1293,7 +1293,7 @@ class FastGiveawayView(discord.ui.View):
             description=f"🎁 **Gain:** {data['prize']}\n"
                         f"🏆 **Gagnants:** {winners_mentions}\n\n"
                         f"Merci d'avoir participé !",
-            color=discord.Color.green()
+            color=discord.Color.gold()
         )
         embed.set_footer(text="Merci à tous ! 🎉")
         embed.set_thumbnail(url="https://github.com/Iseyg91/Etherya-Gestion/blob/main/t%C3%A9l%C3%A9chargement%20(7).png?raw=true")  # Icône ou logo de fin de giveaway
@@ -1330,7 +1330,7 @@ async def fastgw(ctx):
                     f"⏳ **Durée:** 60 secondes\n"
                     f"🏆 **Gagnants:** 1\n"
                     f"📍 **Salon:** {ctx.channel.mention}",
-        color=discord.Color.blurple()
+        color=discord.Color.gold()
     )
     embed.set_footer(text="Choisis les options dans le menu déroulant ci-dessous.")
     embed.set_thumbnail(url="https://github.com/Iseyg91/Etherya-Gestion/blob/main/t%C3%A9l%C3%A9chargement%20(6).png?raw=true")
