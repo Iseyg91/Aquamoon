@@ -1092,6 +1092,9 @@ async def on_reaction_add(reaction, user):
     if message_id in giveaways and str(reaction.emoji) == giveaways[message_id]["emoji"]:
         if user not in giveaways[message_id]["participants"]:
             giveaways[message_id]["participants"].append(user)
+            print(f"{user} a rejoint le giveaway !")  # Message de débogage
+        else:
+            print(f"{user} est déjà un participant.")  # Message de débogage
 
 
 @bot.command()
