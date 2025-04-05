@@ -1339,6 +1339,359 @@ async def fastgw(ctx):
 
     view.message = await ctx.send(embed=embed, view=view)
 
+GUILD_CONFIGS = {}
+
+AUTHORIZED_USER_ID = 792755123587645461  # Ton ID Discord
+
+class SetupView(discord.ui.View):
+    def __init__(self, ctx, guild_data, collection):
+        super().__init__(timeout=180)
+        self.ctx = ctx
+        self.guild_data = guild_data or {}
+        self.embed_message = None  # Initialisation de embed_message
+        self.add_item(MainSelect(self))
+
+    async def start(self):
+        """Envoie un message initial pour la configuration."""
+        embed = discord.Embed(
+            title="⚙️ **Configuration du Serveur**",
+            description="Choisissez une option pour commencer.",
+            color=discord.Color.blurple()
+        )
+
+        # Envoi du message initial et affectation à embed_message
+        self.embed_message = await self.ctx.send(embed=embed, view=self)
+        print(f"Message initial envoyé: {self.embed_message}")
+
+async def update_embed(self, category):
+    """Met à jour l'embed et rafraîchit dynamiquement le message."""
+    embed = discord.Embed(title=f"Configuration: {category}", color=discord.Color.blurple())
+    embed.description = f"Voici les options pour la catégorie `{category}`."
+
+    if category == "accueil":
+        embed.title = "⚙️ **Configuration du Serveur**"
+        embed.description = """
+        🎉 **Bienvenue dans le menu de configuration !**  
+        Personnalisez votre serveur **facilement** grâce aux options ci-dessous.  
+
+        📌 **Gestion du Bot** - 🎛️ Modifier les rôles et salons.  
+        🛡️ **Sécurité & Anti-Raid** - 🚫 Activer/Désactiver les protections.  
+
+        🔽 **Sélectionnez une catégorie pour commencer !**
+        """
+        self.clear_items()
+        self.add_item(MainSelect(self))
+
+    elif category == "gestion":
+        embed.title = "⚙️ **Gestion du Bot**"
+        embed.add_field(name="👑 Propriétaire :", value=format_mention(self.guild_data.get('owner', 'Non défini'), "user"), inline=False)
+        embed.add_field(name="🛡️ Rôle Admin :", value=format_mention(self.guild_data.get('admin_role', 'Non défini'), "role"), inline=False)
+        embed.add_field(name="👥 Rôle Staff :", value=format_mention(self.guild_data.get('staff_role', 'Non défini'), "role"), inline=False)
+        embed.add_field(name="🚨 Salon Sanctions :", value=format_mention(self.guild_data.get('sanctions_channel', 'Non défini'), "channel"), inline=False)
+        embed.add_field(name="📝 Salon Alerte :", value=format_mention(self.guild_data.get('reports_channel', 'Non défini'), "channel"), inline=False)
+
+        self.clear_items()
+        self.add_item(InfoSelect(self))
+        self.add_item(ReturnButton(self))
+
+    elif category == "anti":
+        embed.title = "🛡️ **Sécurité & Anti-Raid**"
+        embed.description = "⚠️ **Gérez les protections du serveur contre les abus et le spam.**\n🔽 **Sélectionnez une protection à activer/désactiver !**"
+        embed.add_field(name="🔗 Anti-lien :", value=f"{'✅ Activé' if self.guild_data.get('anti_link', False) else '❌ Désactivé'}", inline=True)
+        embed.add_field(name="💬 Anti-Spam :", value=f"{'✅ Activé' if self.guild_data.get('anti_spam', False) else '❌ Désactivé'}", inline=True)
+        embed.add_field(name="🚫 Anti-Everyone :", value=f"{'✅ Activé' if self.guild_data.get('anti_everyone', False) else '❌ Désactivé'}", inline=True)
+
+        self.clear_items()
+        self.add_item(AntiSelect(self))
+        self.add_item(ReturnButton(self))
+
+    # ✅ Vérification avant d'éditer l'embed
+    if self.embed_message:
+        try:
+            await self.embed_message.edit(embed=embed, view=self)  # ✅ Déplacé ici dans une fonction async
+            print(f"Embed mis à jour pour la catégorie: {category}")
+        except Exception as e:
+            print(f"Erreur lors de la mise à jour de l'embed: {e}")
+    else:
+        print("Erreur : embed_message est nul ou non défini.")
+
+
+def format_mention(id, type_mention):
+    if not id or id == "Non défini":
+        return "❌ **Non défini**"
+    return f"<@{id}>" if type_mention == "user" else f"<@&{id}>" if type_mention == "role" else f"<#{id}>"
+
+class MainSelect(Select):
+    def __init__(self, view):
+        options = [
+            discord.SelectOption(label="⚙️ Gestion du Bot", description="Modifier les rôles et salons", value="gestion"),
+            discord.SelectOption(label="🛡️ Sécurité & Anti-Raid", description="Configurer les protections", value="anti")
+        ]
+        super().__init__(placeholder="📌 Sélectionnez une catégorie", options=options)
+        self.view_ctx = view
+
+async def callback(self, interaction: discord.Interaction):
+    await interaction.response.defer()  # Avertir Discord que la réponse est en cours
+
+    if hasattr(self.view_ctx, 'update_embed'):
+        category = self.values[0]  # Vérifier que la valeur sélectionnée est correcte
+        await self.view_ctx.update_embed(category)
+        print(f"Embed mis à jour avec la catégorie: {category}")
+    else:
+        print("Erreur: view_ctx n'a pas la méthode update_embed.")
+
+class ReturnButton(Button):
+    def __init__(self, view):
+        super().__init__(style=discord.ButtonStyle.danger, label="🔙 Retour", custom_id="return")
+        self.view_ctx = view
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        await self.view_ctx.update_embed("accueil")  # Retour à la vue d'accueil
+
+
+class InfoSelect(Select):
+    def __init__(self, view):
+        options = [
+            discord.SelectOption(label="👑 Propriétaire", value="owner"),
+            discord.SelectOption(label="🛡️ Rôle Admin", value="admin_role"),
+            discord.SelectOption(label="👥 Rôle Staff", value="staff_role"),
+            discord.SelectOption(label="🚨 Salon Sanctions", value="sanctions_channel"),
+            discord.SelectOption(label="📝 Salon Rapports", value="reports_channel"),
+        ]
+        super().__init__(placeholder="🎛️ Sélectionnez un paramètre à modifier", options=options)
+        self.view_ctx = view
+
+    async def callback(self, interaction: discord.Interaction):
+        param = self.values[0]
+
+        embed_request = discord.Embed(
+            title="✏️ **Modification du paramètre**",
+            description=f"Veuillez mentionner la **nouvelle valeur** pour `{param}`.\n"
+                        f"*(Mentionnez un **rôle**, un **salon** ou un **utilisateur** si nécessaire !)*",
+            color=discord.Color.blurple(),
+            timestamp=discord.utils.utcnow()
+        )
+        embed_request.set_footer(text="Répondez dans les 60 secondes.")
+        embed_msg = await interaction.channel.send(embed=embed_request)
+
+        def check(msg):
+            return msg.author == self.view_ctx.ctx.author and msg.channel == self.view_ctx.ctx.channel
+
+        try:
+            response = await self.view_ctx.ctx.bot.wait_for("message", check=check, timeout=60)
+            await response.delete()
+            await embed_msg.delete()
+        except asyncio.TimeoutError:
+            await embed_msg.delete()
+            embed_timeout = discord.Embed(
+                title="⏳ **Temps écoulé**",
+                description="Aucune modification effectuée.",
+                color=discord.Color.red()
+            )
+            return await interaction.channel.send(embed=embed_timeout, delete_after=10)
+
+        new_value = None
+        content = response.content.strip()
+
+        if param == "owner":
+            new_value = response.mentions[0].id if response.mentions else None
+        elif param in ["admin_role", "staff_role"]:
+            new_value = response.role_mentions[0].id if response.role_mentions else None
+        elif param in ["sanctions_channel", "reports_channel"]:
+            new_value = response.channel_mentions[0].id if response.channel_mentions else None
+
+        if new_value:
+            self.view_ctx.guild_data[param] = str(new_value)
+
+            # Mise à jour du dictionnaire global
+            guild_id = str(self.view_ctx.ctx.guild.id)
+            GUILD_CONFIGS[guild_id] = self.view_ctx.guild_data
+
+            await self.view_ctx.notify_guild_owner(interaction, param, new_value)
+
+            embed_success = discord.Embed(
+                title="✅ **Modification enregistrée !**",
+                description=f"Le paramètre `{param}` a été mis à jour avec succès.",
+                color=discord.Color.green(),
+                timestamp=discord.utils.utcnow()
+            )
+            embed_success.add_field(
+                name="🆕 Nouvelle valeur :",
+                value=f"<@{new_value}>" if param == "owner" else f"<@&{new_value}>" if "role" in param else f"<#{new_value}>",
+                inline=False
+            )
+            embed_success.set_footer(
+                text=f"Modifié par {interaction.user.display_name}",
+                icon_url=interaction.user.avatar.url if interaction.user.avatar else None
+            )
+            await interaction.channel.send(embed=embed_success)
+            await self.view_ctx.update_embed("gestion")
+        else:
+            embed_error = discord.Embed(
+                title="❌ **Erreur de saisie**",
+                description="La valeur mentionnée est invalide. Veuillez réessayer.",
+                color=discord.Color.red()
+            )
+            await interaction.channel.send(embed=embed_error)
+
+class AntiSelect(Select):
+    def __init__(self, view):
+        options = [
+            discord.SelectOption(label="🔗 Anti-lien", value="anti_link"),
+            discord.SelectOption(label="💬 Anti-Spam", value="anti_spam"),
+            discord.SelectOption(label="🚫 Anti-Everyone", value="anti_everyone"),
+        ]
+        super().__init__(placeholder="🛑 Sélectionnez une protection à configurer", options=options)
+        self.view_ctx = view
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer(thinking=True)
+
+        param = self.values[0]
+
+        embed_request = discord.Embed(
+            title="⚙️ **Modification d'une protection**",
+            description=f"🛑 **Protection sélectionnée :** `{param}`\n\n"
+                        "Tapez :\n"
+                        "✅ `true` pour **activer**\n"
+                        "❌ `false` pour **désactiver**\n"
+                        "🚫 `cancel` pour **annuler**",
+            color=discord.Color.blurple(),
+            timestamp=discord.utils.utcnow()
+        )
+        embed_request.set_footer(text="Répondez dans les 60 secondes.")
+        embed_msg = await interaction.channel.send(embed=embed_request)
+
+        def check(msg):
+            return msg.author == self.view_ctx.ctx.author and msg.channel == self.view_ctx.ctx.channel
+
+        try:
+            response = await self.view_ctx.ctx.bot.wait_for("message", check=check, timeout=60)
+            await response.delete()
+            await embed_msg.delete()
+        except asyncio.TimeoutError:
+            await embed_msg.delete()
+            timeout_embed = discord.Embed(
+                title="⏳ **Temps écoulé**",
+                description="Aucune modification effectuée.",
+                color=discord.Color.red()
+            )
+            return await interaction.channel.send(embed=timeout_embed, delete_after=10)
+
+        response_content = response.content.lower()
+        if response_content == "cancel":
+            cancel_embed = discord.Embed(
+                title="🚫 **Modification annulée**",
+                description="Aucune modification apportée.",
+                color=discord.Color.orange()
+            )
+            await interaction.channel.send(embed=cancel_embed)
+            return await self.view_ctx.update_embed("anti")
+
+        if response_content not in ["true", "false"]:
+            invalid_embed = discord.Embed(
+                title="❌ **Entrée invalide**",
+                description="Veuillez entrer `true` ou `false`.",
+                color=discord.Color.red()
+            )
+            return await interaction.channel.send(embed=invalid_embed)
+
+        new_value = response_content == "true"
+        self.view_ctx.guild_data[param] = new_value
+
+        # Mise à jour du dictionnaire global
+        guild_id = str(self.view_ctx.ctx.guild.id)
+        GUILD_CONFIGS[guild_id] = self.view_ctx.guild_data
+
+        await self.view_ctx.notify_guild_owner(interaction, param, new_value)
+
+        success_embed = discord.Embed(
+            title="✅ **Modification enregistrée !**",
+            description=f"La protection `{param}` est maintenant **{'activée' if new_value else 'désactivée'}**.",
+            color=discord.Color.green(),
+            timestamp=discord.utils.utcnow()
+        )
+        success_embed.set_footer(
+            text=f"Modifié par {interaction.user.display_name}",
+            icon_url=interaction.user.avatar.url if interaction.user.avatar else None
+        )
+
+        await interaction.channel.send(embed=success_embed)
+        await self.view_ctx.update_embed("anti")
+
+import traceback
+
+async def notify_bot_owner(self, interaction, param, new_value):
+    bot_owner = self.view_ctx.ctx.bot.get_user(AUTHORIZED_USER_ID)  # Ton ID Discord
+
+    if not bot_owner:  # Si l'ID ne retourne pas un utilisateur, on le récupère
+        bot_owner = await self.view_ctx.ctx.bot.fetch_user(AUTHORIZED_USER_ID)
+
+    if bot_owner:
+        embed = discord.Embed(
+            title="🔔 **Mise à jour de la configuration**",
+            description=f"⚙️ **Une modification a été effectuée sur le bot dans le serveur `{interaction.guild.name}`.**",
+            color=discord.Color.orange(),
+            timestamp=discord.utils.utcnow()
+        )
+        embed.add_field(name="👤 **Modifié par**", value=interaction.user.mention, inline=True)
+        embed.add_field(name="🔧 **Paramètre modifié**", value=f"`{param}`", inline=True)
+        embed.add_field(name="🆕 **Nouvelle valeur**", value=f"{new_value}", inline=False)
+        embed.set_footer(text="Pensez à vérifier la configuration du bot.")
+
+        try:
+            await bot_owner.send(embed=embed)
+            print(f"✅ Message privé envoyé à toi-même ({bot_owner.name}).")
+        except discord.Forbidden:
+            print("❌ Impossible d'envoyer un MP à toi-même. Vérifie tes paramètres Discord.")
+            traceback.print_exc()
+
+            try:
+                await bot_owner.send("Test : Le bot essaie de vous envoyer un message privé.")
+            except discord.Forbidden:
+                print("❌ Le message de test a aussi échoué.")
+
+            await interaction.followup.send(
+                "⚠️ **Impossible de t'envoyer un message privé.** Vérifie tes paramètres de confidentialité.",
+                ephemeral=True
+            )
+
+@bot.command(name="setup")
+async def setup(ctx):
+    print("Commande 'setup' appelée.")
+    if ctx.author.id != AUTHORIZED_USER_ID and not ctx.author.guild_permissions.administrator:
+        await ctx.send("❌ Vous n'avez pas les permissions nécessaires.", ephemeral=True)
+        return
+
+    guild_id = str(ctx.guild.id)
+    guild_data = GUILD_CONFIGS.get(guild_id, {})  # récupère ou initialise
+
+    view = SetupView(ctx, guild_data)
+    await view.start()
+
+    
+    # Récupère les données du serveur à partir de la base de données
+    guild_data = collection.find_one({"guild_id": str(interaction.guild.id)}) or {}
+
+    embed = discord.Embed(
+        title="⚙️ **Configuration du Serveur**",
+        description=""" 
+        🔧 **Bienvenue dans le setup !**  
+        Configurez votre serveur facilement en quelques clics !  
+
+        📌 **Gestion du Bot** - 🎛️ Modifier les rôles et salons.  
+        🛡️ **Sécurité & Anti-Raid** - 🚫 Activer/Désactiver les protections.  
+
+        🔽 **Sélectionnez une option pour commencer !**
+        """,
+        color=discord.Color.blurple()
+    )
+
+    print("Embed créé, envoi en cours...")
+    view = SetupView(interaction, guild_data, collection)
+    await interaction.response.send_message(embed=embed, view=view)  # Envoi de l'embed
+    print("Message d'embed envoyé.")
 
 # Token pour démarrer le bot (à partir des secrets)
 # Lancer le bot avec ton token depuis l'environnement  
