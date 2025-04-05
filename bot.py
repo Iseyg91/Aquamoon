@@ -1291,6 +1291,18 @@ class FastGiveawayView(discord.ui.View):
         await message.channel.send(embed=embed)
         del fast_giveaways[message.id]
 
+@bot.event
+async def on_reaction_add(reaction, user):
+    if user.bot:
+        return
+
+    message_id = reaction.message.id
+    if message_id in fast_giveaways:
+        giveaway = fast_giveaways[message_id]
+        if str(reaction.emoji) == giveaway["emoji"]:
+            if user not in giveaway["participants"]:
+                giveaway["participants"].append(user)
+
 @bot.command()
 async def fastgw(ctx):
     # Demander le nom du fast giveaway
