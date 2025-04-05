@@ -99,7 +99,7 @@ BOT_OWNER_IDS = [792755123587645461, 555060734539726862]
 
 # Vérification si l'utilisateur est l'owner du bot
 def is_owner(ctx):
-    return ctx.author.id == BOT_OWNER_IDS
+    return ctx.author.id in BOT_OWNER_IDS
 
 @bot.command()
 async def shutdown(ctx):
@@ -1087,6 +1087,7 @@ async def on_reaction_add(reaction, user):
 
 
 @bot.command()
+@commands.has_permissions(administrator=True)  # Restriction aux admins
 async def gcreate(ctx):
     await ctx.send("Quel est le nom du giveaway ?")
 
@@ -1110,10 +1111,10 @@ async def gcreate(ctx):
                     "⏳ **Durée:** 60 secondes\n"
                     "🏆 **Gagnants:** 1\n"
                     f"📍 **Salon:** {ctx.channel.mention}",
-        color=discord.Color.blurple()  # Couleur de l'embed plus attractive
+        color=discord.Color.blurple()
     )
     embed.set_footer(text="Choisis les options dans le menu déroulant ci-dessous.")
-    embed.set_thumbnail(url="https://github.com/Iseyg91/Etherya-Gestion/blob/main/t%C3%A9l%C3%A9chargement%20(6).png?raw=true")  # Icône ou logo du giveaway
+    embed.set_thumbnail(url="https://github.com/Iseyg91/Etherya-Gestion/blob/main/t%C3%A9l%C3%A9chargement%20(6).png?raw=true")
 
     view.message = await ctx.send(embed=embed, view=view)
 
@@ -1304,6 +1305,7 @@ async def on_reaction_add(reaction, user):
                 giveaway["participants"].append(user)
 
 @bot.command()
+@commands.has_permissions(administrator=True)
 async def fastgw(ctx):
     # Demander le nom du fast giveaway
     await ctx.send("Quel est le nom du fast giveaway ?")
@@ -1319,10 +1321,10 @@ async def fastgw(ctx):
                     f"⏳ **Durée:** 60 secondes\n"
                     f"🏆 **Gagnants:** 1\n"
                     f"📍 **Salon:** {ctx.channel.mention}",
-        color=discord.Color.blurple()  # Couleur de l'embed plus attractive
+        color=discord.Color.blurple()
     )
     embed.set_footer(text="Choisis les options dans le menu déroulant ci-dessous.")
-    embed.set_thumbnail(url="https://github.com/Iseyg91/Etherya-Gestion/blob/main/t%C3%A9l%C3%A9chargement%20(6).png?raw=true")  # Icône ou logo du giveaway
+    embed.set_thumbnail(url="https://github.com/Iseyg91/Etherya-Gestion/blob/main/t%C3%A9l%C3%A9chargement%20(6).png?raw=true")
 
     view.message = await ctx.send(embed=embed, view=view)
 
