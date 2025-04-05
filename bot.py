@@ -1115,9 +1115,10 @@ async def gcreate(ctx):
 fast_giveaways = {}  # Stocke les participants et les informations pour les fast giveaways
 
 class FastGiveawayView(discord.ui.View):
-    def __init__(self, ctx):
+    def __init__(self, ctx, giveaway_name):
         super().__init__(timeout=180)
         self.ctx = ctx
+        self.giveaway_name = giveaway_name  # Le nom du fast giveaway
         self.prize = " !!Fast Giveaway!!"
         self.duration = 60  # En secondes
         self.duration_text = "60 secondes"
@@ -1129,7 +1130,7 @@ class FastGiveawayView(discord.ui.View):
     async def update_embed(self):
         """ Met à jour l'embed avec les nouvelles informations. """
         embed = discord.Embed(
-            title="🎉 **Création d'un Fast Giveaway**",
+            title=f"🎉 **Création d'un Fast Giveaway : {self.giveaway_name}**",
             description=f"🎁 **Gain:** {self.prize}\n"
                         f"⏳ **Durée:** {self.duration_text}\n"
                         f"🏆 **Gagnants:** {self.winners}\n"
@@ -1217,7 +1218,7 @@ class FastGiveawayView(discord.ui.View):
                 await interaction.followup.send("Aucun salon mentionné.", ephemeral=True)
         elif value == "send_giveaway":
             embed = discord.Embed(
-                title="🎉 Fast Giveaway !",
+                title=f"🎉 Fast Giveaway : {self.giveaway_name}!",
                 description=f"🎁 **Gain:** {self.prize}\n"
                             f"⏳ **Durée:** {self.duration_text}\n"
                             f"🏆 **Gagnants:** {self.winners}\n"
@@ -1292,22 +1293,11 @@ class FastGiveawayView(discord.ui.View):
         await message.channel.send(embed=embed)
         del fast_giveaways[message.id]
 
-@bot.event
-async def on_reaction_add(reaction, user):
-    if user.bot:
-        return
-
-    message_id = reaction.message.id
-    if message_id in fast_giveaways and str(reaction.emoji) == fast_giveaways[message_id]["emoji"]:
-        if user not in fast_giveaways[message_id]["participants"]:
-            fast_giveaways[message_id]["participants"].append(user)
-
-
 @bot.command()
-async def fastgw(ctx):
-    view = FastGiveawayView(ctx)
+async def fastgw(ctx, giveaway_name: str):
+    view = FastGiveawayView(ctx, giveaway_name)  # Passer le nom du giveaway
     embed = discord.Embed(
-        title="🎉 **Création d'un Fast Giveaway**",
+        title=f"🎉 **Création d'un Fast Giveaway : {giveaway_name}**",
         description="Utilise le menu déroulant ci-dessous pour configurer ton fast giveaway.\n\n"
                     "🎁 **Gain:** Un cadeau mystère\n"
                     "⏳ **Durée:** 60 secondes\n"
@@ -1319,6 +1309,7 @@ async def fastgw(ctx):
     embed.set_thumbnail(url="https://github.com/Iseyg91/Etherya-Gestion/blob/main/t%C3%A9l%C3%A9chargement%20(6).png?raw=true")  # Icône ou logo du giveaway
 
     view.message = await ctx.send(embed=embed, view=view)
+
 
 # Token pour démarrer le bot (à partir des secrets)
 # Lancer le bot avec ton token depuis l'environnement  
