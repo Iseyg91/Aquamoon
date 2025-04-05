@@ -180,13 +180,8 @@ async def on_message(message):
         await message.channel.send(embed=embed, view=view)
         return  # Retourne pour éviter de faire le reste du traitement si c'est une mention
 
-    # 🔹 Si le serveur n'a pas de configuration, on ne fait rien d'autre
-    if not guild_data:
-        await bot.process_commands(message)  # Traite les commandes en préfixe
-        return
-
     # 🔹 Traite les commandes en préfixe après tout le reste
-    await bot.process_commands(message)  # Traite les commandes en préfixe
+    await bot.process_commands(message)
 
 async def send_alert_to_admin(message, detected_word):
     """Envoie une alerte privée à l'admin en cas de mot interdit détecté."""
