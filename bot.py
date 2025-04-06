@@ -25,7 +25,7 @@ import platform
 token = os.environ['AQUAMOON']
 intents = discord.Intents.all()
 start_time = time.time()
-bot = commands.Bot(command_prefix="!", intents=intents)
+bot = commands.Bot(command_prefix="0", intents=intents)
 
 @bot.event
 async def on_ready():
