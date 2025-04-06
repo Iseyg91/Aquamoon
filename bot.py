@@ -1661,15 +1661,14 @@ async def notify_bot_owner(self, interaction, param, new_value):
 async def setup(ctx):
     print("Commande 'setup' appelée.")
     if ctx.author.id != AUTHORIZED_USER_ID and not ctx.author.guild_permissions.administrator:
-        await ctx.send("❌ Vous n'avez pas les permissions nécessaires.", ephemeral=True)
+        await ctx.send("❌ Vous n'avez pas les permissions nécessaires.")
         return
 
     guild_id = str(ctx.guild.id)
     guild_data = GUILD_CONFIGS.get(guild_id, {})  # récupère ou initialise
 
-    view = SetupView(ctx, guild_data)
+    view = SetupView(ctx, guild_data, collection)
     await view.start()
-
     
     # Récupère les données du serveur à partir de la base de données
     guild_data = collection.find_one({"guild_id": str(interaction.guild.id)}) or {}
