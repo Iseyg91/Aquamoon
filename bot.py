@@ -1354,10 +1354,9 @@ class SetupView(discord.ui.View):
 async def start(self):
     """Envoie un message initial pour la configuration."""
     # Crée un message vide temporaire pour pouvoir le modifier ensuite
-    self.embed_message = await self.ctx.send(content="Chargement du menu...", view=self)
-    
-    # Met à jour l'embed avec la vraie page d'accueil
-    await self.update_embed("accueil")
+    self.embed_message = await self.ctx.send(embed=discord.Embed(), view=self)  # Envoie vide temporairement
+    await self.update_embed("accueil")  # Affiche le bon embed avec les bons textes
+
 
 async def update_embed(self, category):
     """Met à jour l'embed et rafraîchit dynamiquement le message."""
