@@ -1352,11 +1352,16 @@ class SetupView(discord.ui.View):
         self.add_item(MainSelect(self))
 
 async def start(self):
-    """Envoie un message initial pour la configuration."""
-    # Crée un message vide temporaire pour pouvoir le modifier ensuite
-    self.embed_message = await self.ctx.send(embed=discord.Embed(), view=self)  # Envoie vide temporairement
-    await self.update_embed("accueil")  # Affiche le bon embed avec les bons textes
+        """Envoie un message initial pour la configuration."""
+        embed = discord.Embed(
+            title="⚙️ **Configuration du Serveur**",
+            description="Choisissez une option pour commencer.",
+            color=discord.Color.blurple()
+        )
 
+        # Envoi du message initial et affectation à embed_message
+        self.embed_message = await self.ctx.send(embed=embed, view=self)
+        print(f"Message initial envoyé: {self.embed_message}")
 
 async def update_embed(self, category):
     """Met à jour l'embed et rafraîchit dynamiquement le message."""
