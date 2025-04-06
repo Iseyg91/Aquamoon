@@ -1430,6 +1430,16 @@ class MainSelect(Select):
         super().__init__(placeholder="📌 Sélectionnez une catégorie", options=options)
         self.view_ctx = view
 
+    async def callback(self, interaction: discord.Interaction):  # <-- Ici, bien défini dans la classe
+        await interaction.response.defer()
+
+        if hasattr(self.view_ctx, 'update_embed'):
+            category = self.values[0]
+            await self.view_ctx.update_embed(category)
+            print(f"Embed mis à jour avec la catégorie: {category}")
+        else:
+            print("Erreur: view_ctx n'a pas la méthode update_embed.")
+
 async def callback(self, interaction: discord.Interaction):
     await interaction.response.defer()  # Avertir Discord que la réponse est en cours
 
@@ -1620,56 +1630,42 @@ class AntiSelect(Select):
         await interaction.channel.send(embed=success_embed)
         await self.view_ctx.update_embed("anti")
 
-import traceback
-
 async def notify_bot_owner(self, interaction, param, new_value):
-    bot_owner = self.view_ctx.ctx.bot.get_user(AUTHORIZED_USER_ID)  # Ton ID Discord
+    try:
+        bot_owner = self.view_ctx.ctx.bot.get_user(AUTHORIZED_USER_ID)
+        if not bot_owner:
+            bot_owner = await self.view_ctx.ctx.bot.fetch_user(AUTHORIZED_USER_ID)
 
-    if not bot_owner:  # Si l'ID ne retourne pas un utilisateur, on le récupère
-        bot_owner = await self.view_ctx.ctx.bot.fetch_user(AUTHORIZED_USER_ID)
-
-    if bot_owner:
-        embed = discord.Embed(
-            title="🔔 **Mise à jour de la configuration**",
-            description=f"⚙️ **Une modification a été effectuée sur le bot dans le serveur `{interaction.guild.name}`.**",
-            color=discord.Color.orange(),
-            timestamp=discord.utils.utcnow()
-        )
-        embed.add_field(name="👤 **Modifié par**", value=interaction.user.mention, inline=True)
-        embed.add_field(name="🔧 **Paramètre modifié**", value=f"`{param}`", inline=True)
-        embed.add_field(name="🆕 **Nouvelle valeur**", value=f"{new_value}", inline=False)
-        embed.set_footer(text="Pensez à vérifier la configuration du bot.")
-
-        try:
-            await bot_owner.send(embed=embed)
-            print(f"✅ Message privé envoyé à toi-même ({bot_owner.name}).")
-        except discord.Forbidden:
-            print("❌ Impossible d'envoyer un MP à toi-même. Vérifie tes paramètres Discord.")
-            traceback.print_exc()
-
-            try:
-                await bot_owner.send("Test : Le bot essaie de vous envoyer un message privé.")
-            except discord.Forbidden:
-                print("❌ Le message de test a aussi échoué.")
-
-            await interaction.followup.send(
-                "⚠️ **Impossible de t'envoyer un message privé.** Vérifie tes paramètres de confidentialité.",
-                ephemeral=True
+        if bot_owner:
+            embed = discord.Embed(
+                title="🔔 **Mise à jour de la configuration**",
+                description=f"⚙️ **Une modification a été effectuée sur le bot dans le serveur `{interaction.guild.name}`.**",
+                color=discord.Color.orange(),
+                timestamp=discord.utils.utcnow()
             )
+            embed.add_field(name="👤 **Modifié par**", value=interaction.user.mention, inline=True)
+            embed.add_field(name="🔧 **Paramètre modifié**", value=f"`{param}`", inline=True)
+            embed.add_field(name="🆕 **Nouvelle valeur**", value=f"{new_value}", inline=False)
+            embed.set_footer(text="Pensez à vérifier la configuration du bot.")
+            await bot_owner.send(embed=embed)
+            print(f"✅ Message privé envoyé à {bot_owner.name}.")
+        else:
+            print("Impossible de récupérer l'utilisateur du bot.")
+    except discord.Forbidden:
+        print("Impossible d'envoyer un message privé. Vérifie les paramètres de confidentialité.")
+    except Exception as e:
+        print(f"Erreur lors de l'envoi du message privé au propriétaire du bot : {e}")
+        except discord.Forbidden:
 
-@bot.command(name="setup")
+@bot.command()
 async def setup(ctx):
-    print("Commande 'setup' appelée.")
-    if ctx.author.id != AUTHORIZED_USER_ID and not ctx.author.guild_permissions.administrator:
-        await ctx.send("❌ Vous n'avez pas les permissions nécessaires.")
-        return
+    if ctx.author.id != AUTHORIZED_USER_ID:
+        return await ctx.send("❌ Tu n'es pas autorisé à exécuter cette commande.")
 
-    guild_id = str(ctx.guild.id)
-    guild_data = GUILD_CONFIGS.get(guild_id, {})  # récupère ou initialise
-
-    view = SetupView(ctx, guild_data, collection)
+    guild_data = GUILD_CONFIGS.get(str(ctx.guild.id), {})
+    view = SetupView(ctx, guild_data, collection=None)
     await view.start()
-    
+
     # Récupère les données du serveur à partir de la base de données
     guild_data = collection.find_one({"guild_id": str(interaction.guild.id)}) or {}
 
