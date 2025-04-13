@@ -364,11 +364,6 @@ async def on_member_join(member):
                 "🎬 **Animés & Streaming** → #Crunchyroll\n"
                 "🖌️ **Création & Design** → #Éditeur #Graphiste\n"
                 "🤝 **Échange & Partage** → #Communautaire\n\n"
-                "🔥 **ÉVÉNEMENT À NE PAS MANQUER !** 🔥\n"
-                "🌙 **LA NUIT D’AQUAMOON** 🌙\n\n"
-                "🕒 **Ce samedi à 21H30**\n"
-                "📜 *La légende raconte qu’un soir de nuit, la Lune Aquamoon se réveillera et marquera l’ouverture du serveur. Puis, une horde de graphistes et d’éditeurs s’abattra sur le serveur…*\n\n"
-                "🔔 **Ne rate pas ce moment légendaire !** 🔥"
             ),
             color=discord.Color.blue()
         )
